@@ -52,7 +52,7 @@ public class Game extends UnicastRemoteObject implements Client, Runnable {
 
 	@Override
 	public void receiveMessage(String from, Serializable msg) throws RemoteException {
-		System.out.println(gameState.toString() + " : Received from " + from + ": " + msg);
+		System.out.println(gameState.toString() + " " + player.getName() + " : Received from " + from + ": " + msg);
 		gameState.receiveMessage(from, msg);
 	}
 

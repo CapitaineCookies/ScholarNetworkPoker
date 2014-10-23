@@ -17,9 +17,11 @@ public class GetPlayersGameState extends GameState {
 
 	private List<Player> playersWantToPlay;
 	private ScheduledThreadPoolExecutor scheduler;
+	private boolean reiciveplayers;
 
 	public GetPlayersGameState(Game game) {
 		super(game);
+		this.reiciveplayers = false;
 		this.playersWantToPlay = new Vector<Player>();
 		this.playersWantToPlay.add(game.getPlayer());
 		this.scheduler = new ScheduledThreadPoolExecutor(1);
@@ -47,7 +49,6 @@ public class GetPlayersGameState extends GameState {
 	public void start() {
 		sendPlayingMessage();
 		startChrono();
-
 		waitStepDone();
 		goToNextStep();
 	}
