@@ -66,6 +66,7 @@ public class Game extends UnicastRemoteObject implements Client, Runnable {
 
 	public void startGame() {
 		do {
+			System.out.println(player.getName() + " " + gameState + " start");
 			gameState.start();
 		} while (!(gameState instanceof ExitGameState));
 

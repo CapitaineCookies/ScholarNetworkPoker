@@ -20,8 +20,7 @@ public abstract class GameState {
 		this.playersReady = new Vector<>();
 	}
 	
-	public void receiveMessage(String from, Serializable msg) throws RemoteException {
-	}
+	public abstract void receiveMessage(String from, Serializable msg) throws RemoteException;
 	
 	protected void ignoredMessage(String from, Serializable msg) {
 		System.out.println("Message ignored : " + from + " : " + msg);

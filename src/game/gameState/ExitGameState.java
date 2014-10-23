@@ -1,5 +1,8 @@
 package game.gameState;
 
+import java.io.Serializable;
+import java.rmi.RemoteException;
+
 import game.Game;
 
 public class ExitGameState extends GameState {
@@ -11,7 +14,6 @@ public class ExitGameState extends GameState {
 	@Override
 	public void start() {
 		goToNextStep();
-		System.exit(0);
 	}
 
 	@Override
@@ -23,6 +25,11 @@ public class ExitGameState extends GameState {
 	protected void goToNextStep() {
 		// Non next step
 		// TODO se retirer du reso
+	}
+
+	@Override
+	public void receiveMessage(String from, Serializable msg) throws RemoteException {
+		ignoredMessage(from, msg);
 	}
 	
 

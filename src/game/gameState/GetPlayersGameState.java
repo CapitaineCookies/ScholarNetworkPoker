@@ -29,7 +29,6 @@ public class GetPlayersGameState extends GameState {
 
 	@Override
 	public void receiveMessage(String from, Serializable msg) throws RemoteException {
-		super.receiveMessage(from, msg);
 
 		// TODO synchronized
 		if (msg instanceof MsgPlayers) {

@@ -2,7 +2,9 @@ package game.gameState;
 
 import game.Game;
 
+import java.io.Serializable;
 import java.rmi.Naming;
+import java.rmi.RemoteException;
 
 import reso.Reso;
 
@@ -39,6 +41,11 @@ public class GetResoGameState extends GameState {
 	@Override
 	public String toString() {
 		return "Get Reso";
+	}
+
+	@Override
+	public void receiveMessage(String from, Serializable msg) throws RemoteException {
+		ignoredMessage(from, msg);
 	}
 
 }
