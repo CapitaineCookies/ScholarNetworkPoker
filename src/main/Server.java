@@ -1,10 +1,12 @@
-package reso;
+package main;
 
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import reso.Reso;
+import reso.ResoImpl;
 
 
-public class Launcher {
+public class Server {
 
 	public static void main(String[] args) {
 
