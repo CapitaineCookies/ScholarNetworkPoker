@@ -28,9 +28,4 @@ public class DeclarePlayerGameState extends GameState {
 		game.setGameState(new GetPlayersGameState(game));
 	}
 
-	@Override
-	public String toString() {
-		return "Declare Player";
-	}
-
 }

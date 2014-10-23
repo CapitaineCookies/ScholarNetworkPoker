@@ -17,11 +17,6 @@ public class ExitGameState extends GameState {
 	}
 
 	@Override
-	public String toString() {
-		return "ExitGameState";
-	}
-
-	@Override
 	protected void goToNextStep() {
 		// Non next step
 		// TODO se retirer du reso

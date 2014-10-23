@@ -88,9 +88,4 @@ public class GetPlayersGameState extends GameState {
 		}
 	}
 
-	@Override
-	public String toString() {
-		return "Get Players";
-	}
-
 }

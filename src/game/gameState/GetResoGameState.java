@@ -39,11 +39,6 @@ public class GetResoGameState extends GameState {
 	}
 
 	@Override
-	public String toString() {
-		return "Get Reso";
-	}
-
-	@Override
 	public void receiveMessage(String from, Serializable msg) throws RemoteException {
 		ignoredMessage(from, msg);
 	}

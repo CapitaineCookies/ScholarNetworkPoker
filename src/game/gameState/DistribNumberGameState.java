@@ -24,12 +24,6 @@ public class DistribNumberGameState extends GameState {
 	}
 
 	@Override
-	public String toString() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public void receiveMessage(String from, Serializable msg) throws RemoteException {
 		// TODO Auto-generated method stub
 		

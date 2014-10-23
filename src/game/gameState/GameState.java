@@ -46,5 +46,7 @@ public abstract class GameState {
 	protected abstract void goToNextStep();
 	
 	
-	public abstract String toString();
+	public String toString() {
+		return getClass().getSimpleName().replace("GameState", "");
+	}
 }
