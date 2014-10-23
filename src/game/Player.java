@@ -24,7 +24,7 @@ public class Player implements Serializable {
 		if (!(obj instanceof Player))
 			return false;
 		Player other = (Player) obj;
-		return name == other.name;
+		return name.equals(other.name);
 	}
 	
 	@Override

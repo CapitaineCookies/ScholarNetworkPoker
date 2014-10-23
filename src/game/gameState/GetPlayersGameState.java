@@ -77,6 +77,12 @@ public class GetPlayersGameState extends GameState {
 	@Override
 	public void goToNextStep() {
 		// Check if my name is include in the list of player
+                String players = game.getPlayer().getName() + " -> [";
+                for (Player p : playersWantToPlay) {
+                    players += p.getName() + " ";
+                }
+                players += "]";
+                System.out.println(players);
 		if (playersWantToPlay.contains(game.getPlayer())) {
 			// Set other player list without me
 			playersWantToPlay.remove(game.getPlayer());
