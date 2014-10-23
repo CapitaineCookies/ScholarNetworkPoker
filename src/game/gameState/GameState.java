@@ -30,15 +30,20 @@ public abstract class GameState {
 		return game.getPlayer().getName();
 	}
 	
-	protected synchronized void notifyStepDone() {
-		stepDone.notify();
+	protected void notifyStepDone() {
+		synchronized (stepDone) {
+			stepDone.notify();
+			
+		}
 	}
 	
-	protected synchronized void waitStepDone() {
+	protected void waitStepDone() {
+		synchronized (stepDone) {
 		try {
 			stepDone.wait();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
+		}
 		}
 	}
 	
