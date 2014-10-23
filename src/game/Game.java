@@ -22,7 +22,7 @@ public class Game extends UnicastRemoteObject implements Client, Runnable {
 	protected GameState gameState;
 	protected List<Player> otherPlayer;
 
-	protected Game(Player player) throws RemoteException {
+	public Game(Player player) throws RemoteException {
 		super();
 		this.reso = null;
 		this.otherPlayer = null;
@@ -69,17 +69,6 @@ public class Game extends UnicastRemoteObject implements Client, Runnable {
 			gameState.start();
 		} while (!(gameState instanceof ExitGameState));
 
-	}
-
-	public static void main(String[] args) throws Exception {
-		int NB_PLAYERS = 4;
-		Game players[] = new Game[NB_PLAYERS];
-		Thread t[] = new Thread[NB_PLAYERS];
-		for (int i = 0; i < NB_PLAYERS; ++i) {
-			players[i] = new Game(new Player("p" + i));
-			t[i] = new Thread(players[i]);
-			t[i].start();
-		}
 	}
 
 	@Override
