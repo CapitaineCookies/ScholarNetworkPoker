@@ -24,7 +24,7 @@ public class DistribNumberGameState extends GameState {
 
     public DistribNumberGameState(Game game) {
         super(game);
-        
+
         nbMsgSync = 0;
         nbMsgReceived = 0;
         alreadySentOk = false;
@@ -60,17 +60,17 @@ public class DistribNumberGameState extends GameState {
 
     @Override
     public void start() {
+        //TODO: il faut que tout les processus soient prêt avant de commencer à envoyer des messages = réussir a supprimer le sleeeeep :)
         try {
-         Thread.sleep(5000);
-         } catch (InterruptedException ex) {
-         Logger.getLogger(DistribNumberGameState.class.getName()).log(Level.SEVERE, null, ex);
-         }
-
+            Thread.sleep(5000);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(DistribNumberGameState.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
         int taille = game.getOtherplayer().size() + 1;
         int id = (int) (Math.random() * taille);
 
         game.getPlayer().setID(id);
-        //System.out.println(game.getPlayer().getName() + " has choosen ID = " + id);
 
         for (Player p : game.getOtherplayer()) {
             sendIdMessage(p.getName());
@@ -84,14 +84,8 @@ public class DistribNumberGameState extends GameState {
     protected void goToNextStep() {
         System.out.println("goToNextStep");
 
-        System.out.println(game.getPlayer() + " : " + game.getOtherplayer());
+        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" + game.getPlayer() + " : " + game.getOtherplayer());
         game.setGameState(new ExitGameState(game));
-
-        /*try {
-         Thread.sleep(1000000000);
-         } catch (InterruptedException ex) {
-         Logger.getLogger(DistribNumberGameState.class.getName()).log(Level.SEVERE, null, ex);
-         }*/
     }
 
     @Override
@@ -153,42 +147,10 @@ public class DistribNumberGameState extends GameState {
             nbMsgIdOk++;
             System.out.println(game.getPlayer().getName() + "msgIdOk : " + nbMsgIdOk + "/" + game.getOtherplayer().size());
             if (nbMsgIdOk == game.getOtherplayer().size()) {
-
-                //ne pas quitter l'état si on a pas encore envoyer OK aux autres.
-                /*if (!alreadySentOk) {
-                 for (Player p : game.getOtherplayer()) {
-                 sendIdOkMessage(p.getName());
-                 }
-
-                 for (Player p : game.getOtherplayer()) {
-                 sendIdMessage(p.getName());
-                 }
-                    
-                 alreadySentOk = true;
-                 }*/
-                System.out.println("OKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK");
                 notifyStepDone();
             }
         }
 
-    }
-
-    public boolean allDifferent() {
-
-        ArrayList<Player> players = new ArrayList<>();
-
-        players.add(game.getPlayer());
-        for (Player p : game.getOtherplayer()) {
-            players.add(p);
-        }
-
-        for (int i = 0; i < players.size(); ++i) {
-            if (!isDifferent(players.get(i), players)) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     public boolean isDifferent(Player p, List<Player> l) {
@@ -205,38 +167,33 @@ public class DistribNumberGameState extends GameState {
     }
 
     public int chooseValidId() {
-        int id = -1;
 
-        List<Player> L = new ArrayList<>(); //contient la liste des joueurs
-        List<Integer> U = new ArrayList<>(); //contient la liste des id à ne pas choisir
-        List<Integer> C = new ArrayList<>(); //contient la liste des ids a choisir
+        List<Player> players = new ArrayList<>(); //contient la liste de tous les joueurs
+        List<Integer> idsNotToChoose = new ArrayList<>(); //contient la liste des id à ne pas choisir
+        List<Integer> idsToChoose = new ArrayList<>(); //contient la liste des ids à choisir
 
-        L.add(game.getPlayer());
+        players.add(game.getPlayer());
         for (Player p : game.getOtherplayer()) {
-            L.add(p);
+            players.add(p);
         }
 
         for (int i = 0; i < game.getOtherplayer().size() + 1; ++i) {
-            C.add(i);
+            idsToChoose.add(i);
         }
 
-        for (int i = 0; i < L.size(); ++i) {
-            if (isDifferent(L.get(i), L)) {
-                U.add(L.get(i).getID());
+        for (int i = 0; i < players.size(); ++i) {
+            if (isDifferent(players.get(i), players)) {
+                idsNotToChoose.add(players.get(i).getID());
             }
         }
 
-        //System.out.println("Ids a ne pas choisir >>>> " + U);
-        for (int i = 0; i < L.size(); ++i) {
-            //ids que l'ont peut choisir
-            if ((U.contains(L.get(i).getID()))) {
-                C.remove((Integer) (L.get(i).getID()));
+        for (int i = 0; i < players.size(); ++i) {
+            if ((idsNotToChoose.contains(players.get(i).getID()))) {
+                idsToChoose.remove((Integer)(players.get(i).getID()));
             }
         }
 
-        //System.out.println("Ids possible >>>> " + C);
-        int index = (int) (Math.random() * C.size());
-
-        return C.get(index);
+        int index = (int) (Math.random() * idsToChoose.size());
+        return idsToChoose.get(index);
     }
 }

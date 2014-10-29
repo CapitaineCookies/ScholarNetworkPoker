@@ -10,6 +10,7 @@ import java.util.Vector;
 
 public abstract class GameState {
 	
+        protected int nbMsgSyncState;
 	protected Object stepDone;
 	protected Game game;
 	protected List<Player> playersReady;
