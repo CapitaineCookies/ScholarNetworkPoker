@@ -31,4 +31,12 @@ public class Player implements Serializable {
 	public String toString() {
 		return name + " " + id;
 	}
+        
+        public void setID(int id) {
+            this.id = id;
+        }
+        
+        public int getID() {
+            return this.id;
+        }
 }
