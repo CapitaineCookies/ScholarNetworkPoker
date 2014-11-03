@@ -15,13 +15,16 @@ import game.Player;
  */
 public class Client {
     	public static void main(String[] args) throws Exception {
-		int NB_PLAYERS = 20;
+		/*int NB_PLAYERS = 20;
 		Game players[] = new Game[NB_PLAYERS];
 		Thread t[] = new Thread[NB_PLAYERS];
 		for (int i = 0; i < NB_PLAYERS; ++i) {
 			players[i] = new Game(new Player("p" + i));
 			t[i] = new Thread(players[i]);
 			t[i].start();
-		}
+		}*/
+            
+            Game p = new Game(new Player("p" + (int)(Math.random() * 1000)));
+            p.startGame();
 	}
 }

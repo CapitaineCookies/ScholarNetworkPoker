@@ -48,7 +48,7 @@ public class ResoImpl extends UnicastRemoteObject implements Reso {
 		super();
 		this.currentMessageId = new AtomicInteger(0);
 		this.clients = Collections.synchronizedMap(new HashMap<String, Client>());
-		this.scheduler = new ScheduledThreadPoolExecutor(50);
+		this.scheduler = new ScheduledThreadPoolExecutor(200);
 		this.random = new Random(System.currentTimeMillis());
 	}
 

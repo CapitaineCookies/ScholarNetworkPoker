@@ -11,8 +11,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import message.MsgIdChoice;
 import message.MsgIdOk;
-import message.MsgPlayers;
-import message.MsgPlaying;
 import message.MsgSync;
 
 public class DistribNumberGameState extends GameState {
@@ -33,7 +31,7 @@ public class DistribNumberGameState extends GameState {
     public void sendSynchroMessage(String p) {
         String playerName = game.getPlayer().getName();
         try {
-            game.sendMessage(playerName, p, new MsgSync());
+            game.sendMessage(playerName, p, new MsgSync(EGameState.distribNumber));
         } catch (RemoteException e) {
             e.printStackTrace();
         }
@@ -42,7 +40,7 @@ public class DistribNumberGameState extends GameState {
     public void sendIdOkMessage(String p) {
         String playerName = game.getPlayer().getName();
         try {
-            game.sendMessage(playerName, p, new MsgIdOk());
+            game.sendMessage(playerName, p, new MsgIdOk(EGameState.distribNumber));
         } catch (RemoteException e) {
             e.printStackTrace();
         }
@@ -52,7 +50,7 @@ public class DistribNumberGameState extends GameState {
         String playerName = game.getPlayer().getName();
 
         try {
-            game.sendMessage(playerName, p, new MsgIdChoice(game.getPlayer().getID()));
+            game.sendMessage(playerName, p, new MsgIdChoice(game.getPlayer().getID(), EGameState.distribNumber));
         } catch (RemoteException e) {
             e.printStackTrace();
         }
@@ -61,12 +59,13 @@ public class DistribNumberGameState extends GameState {
     @Override
     public void start() {
         //TODO: il faut que tout les processus soient prêt avant de commencer à envoyer des messages = réussir a supprimer le sleeeeep :)
-        try {
-            Thread.sleep(5000);
+
+        /*try {
+            Thread.sleep(10000);
         } catch (InterruptedException ex) {
             Logger.getLogger(DistribNumberGameState.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+*/
         int taille = game.getOtherplayer().size() + 1;
         int id = (int) (Math.random() * taille);
 
@@ -85,7 +84,7 @@ public class DistribNumberGameState extends GameState {
         System.out.println("goToNextStep");
 
         System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" + game.getPlayer() + " : " + game.getOtherplayer());
-        game.setGameState(new ExitGameState(game));
+        game.setCurrentGameState(EGameState.exit);
     }
 
     @Override
@@ -189,7 +188,7 @@ public class DistribNumberGameState extends GameState {
 
         for (int i = 0; i < players.size(); ++i) {
             if ((idsNotToChoose.contains(players.get(i).getID()))) {
-                idsToChoose.remove((Integer)(players.get(i).getID()));
+                idsToChoose.remove((Integer) (players.get(i).getID()));
             }
         }
 

@@ -35,7 +35,7 @@ public class GetResoGameState extends GameState {
 
 	@Override
 	protected void goToNextStep() {
-		game.setGameState(new DeclarePlayerGameState(game));
+		game.setCurrentGameState(EGameState.declarePlayer);
 	}
 
 	@Override

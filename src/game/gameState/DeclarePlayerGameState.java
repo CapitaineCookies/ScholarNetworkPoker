@@ -25,7 +25,7 @@ public class DeclarePlayerGameState extends GameState {
 
 	@Override
 	protected void goToNextStep() {
-		game.setGameState(new GetPlayersGameState(game));
+		game.setCurrentGameState(EGameState.getPlayers);
 	}
 
 }
