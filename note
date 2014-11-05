@@ -1,0 +1,2 @@
+Verifier le waitStepDone
+Comment marche notify ? Est-il bloquant ? Sinon tuiliser un boolean pour savoir si l'étape est déja done avant de ce mettre en attente

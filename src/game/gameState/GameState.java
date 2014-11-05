@@ -18,6 +18,7 @@ public abstract class GameState {
         exit,
         getPlayers,
         getReso,
+        cardsDistribution,
 
     }
 
