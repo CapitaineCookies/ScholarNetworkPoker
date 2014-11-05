@@ -61,11 +61,11 @@ public class DistribNumberGameState extends GameState {
         //TODO: il faut que tout les processus soient prêt avant de commencer à envoyer des messages = réussir a supprimer le sleeeeep :)
 
         /*try {
-            Thread.sleep(10000);
-        } catch (InterruptedException ex) {
-            Logger.getLogger(DistribNumberGameState.class.getName()).log(Level.SEVERE, null, ex);
-        }
-*/
+         Thread.sleep(10000);
+         } catch (InterruptedException ex) {
+         Logger.getLogger(DistribNumberGameState.class.getName()).log(Level.SEVERE, null, ex);
+         }
+         */
         int taille = game.getOtherplayer().size() + 1;
         int id = (int) (Math.random() * taille);
 
@@ -84,13 +84,16 @@ public class DistribNumberGameState extends GameState {
         System.out.println("goToNextStep");
 
         System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" + game.getPlayer() + " : " + game.getOtherplayer());
-        game.setCurrentGameState(EGameState.exit);
+        game.setCurrentGameState(EGameState.election);
     }
 
     @Override
     public synchronized void receiveMessage(String from, Serializable msg) throws RemoteException {
-
+       /* if (stepDoneNotified) 
+            return;*/
+        
         if (msg instanceof MsgIdChoice) {
+            
             MsgIdChoice msgIdChoice = (MsgIdChoice) msg;
 
             for (Player p : game.getOtherplayer()) {
@@ -121,16 +124,12 @@ public class DistribNumberGameState extends GameState {
                             sendIdOkMessage(p.getName());
                         }
 
-                        for (Player p : game.getOtherplayer()) {
-                            sendIdMessage(p.getName());
-                        }
-
                         alreadySentOk = true;
-                    } else {
-                        for (Player p : game.getOtherplayer()) {
-                            sendIdMessage(p.getName());
-                        }
                     }
+                    for (Player p : game.getOtherplayer()) {
+                        sendIdMessage(p.getName());
+                    }
+
                 } else {
                     int newId = chooseValidId();
                     game.getPlayer().setID(newId);

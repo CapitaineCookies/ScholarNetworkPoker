@@ -2,6 +2,7 @@ package game;
 
 import game.gameState.DeclarePlayerGameState;
 import game.gameState.DistribNumberGameState;
+import game.gameState.ElectionGameState;
 import game.gameState.ExitGameState;
 import game.gameState.GameState;
 import game.gameState.GameState.EGameState;
@@ -44,10 +45,46 @@ public class Game extends UnicastRemoteObject implements Client, Runnable {
         gameStates[EGameState.exit.ordinal()] = new ExitGameState(this);
         gameStates[EGameState.getPlayers.ordinal()] = new GetPlayersGameState(this);
         gameStates[EGameState.getReso.ordinal()] = new GetResoGameState(this);
+        gameStates[EGameState.election.ordinal()] = new ElectionGameState(this);
 
         this.currentGameState = gameStates[EGameState.getReso.ordinal()];
     }
 
+    public Player getNextPlayer() {
+        Player maxPlayer = getMax(otherPlayers);
+        if(maxPlayer == player)
+            return getMin(otherPlayers);
+        
+        Player nextPlayer = maxPlayer;
+        for (Player p : otherPlayers)
+        {
+            if (p.getID() < nextPlayer.getID() && p.getID() > player.getID())
+                nextPlayer = p;
+        }
+        
+        return nextPlayer;
+    }
+    
+    private Player getMin(List<Player> otherPlayers) {
+        Player minPlayer = getPlayer();
+        for (Player p : otherPlayers)
+        {
+            if(p.getID() < minPlayer.getID())
+                minPlayer = p;
+        }
+        return minPlayer;
+    }
+    
+    private Player getMax(List<Player> otherPlayers) {
+        Player minPlayer = getPlayer();
+        for (Player p : otherPlayers)
+        {
+            if(p.getID() > minPlayer.getID())
+                minPlayer = p;
+        }
+        return minPlayer;
+    }
+    
     public Player getPlayer() {
         return player;
     }
@@ -60,6 +97,10 @@ public class Game extends UnicastRemoteObject implements Client, Runnable {
         this.reso = reso;
     }
 
+    public GameState getCurrentGameState() {
+        return this.currentGameState;
+    }
+    
     public void setCurrentGameState(EGameState gameState) {
         this.currentGameState = gameStates[gameState.ordinal()];
     }
