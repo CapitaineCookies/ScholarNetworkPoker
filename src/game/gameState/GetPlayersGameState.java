@@ -20,14 +20,12 @@ public class GetPlayersGameState extends GameState {
     private List<Player> playersWantToPlay;
     private ScheduledThreadPoolExecutor scheduler;
     private boolean recieveplayers;
-    private int nbMessageStepDone;
 
     public GetPlayersGameState(Game game) {
         super(game);
         this.recieveplayers = false;
         this.playersWantToPlay = new Vector<Player>();
         this.scheduler = new ScheduledThreadPoolExecutor(1);
-        nbMessageStepDone = 0;
     }
 
     @Override
@@ -41,7 +39,6 @@ public class GetPlayersGameState extends GameState {
             scheduler.shutdown();
             notifyStepDone();
         } else if (msg instanceof MsgPlaying) {
-            MsgPlaying msgIPlay = (MsgPlaying) msg;
             playersWantToPlay.add(new Player(from));
             if (!getPlayerName().equals(from)) {
                 game.sendMessage(getPlayerName(), from, new MsgPlayingToo(EGameState.getPlayers));
@@ -53,12 +50,7 @@ public class GetPlayersGameState extends GameState {
             }
 
         } else if (msg instanceof MsgStepDone) {
-            nbMessageStepDone++;
-            System.out.println("nbMessageStepDone=" + nbMessageStepDone + "/" + game.getOtherplayer().size());
-            if (nbMessageStepDone == game.getOtherplayer().size()) {
-                notifyOtherPlayersDone();
-                System.out.println("Is notify");
-            }
+        	super.receiveStepDone(from);
 
         } else {
             ignoredMessage(from, msg);
@@ -107,17 +99,8 @@ public class GetPlayersGameState extends GameState {
                 sendMsgStepDone(p.getName(), EGameState.getPlayers);
             }
 
-            while (nbMessageStepDone < game.getOtherplayer().size()) {
-                int i = 0;
-            }
+            waitOtherPlayersDone();
 
-            /*if(nbMessageStepDone < game.getOtherplayer().size()) {
-             System.out.println("Wait");
-             waitOtherPlayersDone(); 
-                
-             } else {
-             System.out.println("notWait");
-             }*/
             game.setCurrentGameState(EGameState.distribNumber);
 
         } else {

@@ -1,5 +1,6 @@
 package game;
 
+import game.gameState.CardsDistributionGameState;
 import game.gameState.DeclarePlayerGameState;
 import game.gameState.DistribNumberGameState;
 import game.gameState.ElectionGameState;
@@ -12,11 +13,7 @@ import game.gameState.GetResoGameState;
 import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 
 import message.Message;
 import reso.Client;
@@ -31,11 +28,14 @@ public class Game extends UnicastRemoteObject implements Client, Runnable {
 	protected GameState currentGameState;
 	protected GameState gameStates[];
 	protected List<Player> otherPlayers;
+	protected Player nextPlayer;
+	
 
 	public Game(Player player) throws RemoteException {
 		super();
 		this.reso = null;
 		this.otherPlayers = null;
+		this.nextPlayer = null;
 		this.player = player;
 
 		gameStates = new GameState[EGameState.values().length];
@@ -46,6 +46,7 @@ public class Game extends UnicastRemoteObject implements Client, Runnable {
 		gameStates[EGameState.getPlayers.ordinal()] = new GetPlayersGameState(this);
 		gameStates[EGameState.getReso.ordinal()] = new GetResoGameState(this);
 		gameStates[EGameState.election.ordinal()] = new ElectionGameState(this);
+		gameStates[EGameState.cardsDistribution.ordinal()] = new CardsDistributionGameState(this);
 
 		this.currentGameState = gameStates[EGameState.getReso.ordinal()];
 	}
