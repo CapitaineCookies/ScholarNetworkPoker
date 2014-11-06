@@ -44,7 +44,8 @@ public class Game extends UnicastRemoteObject implements Client, Runnable {
         gameStates[EGameState.exit.ordinal()] = new ExitGameState(this);
         gameStates[EGameState.getPlayers.ordinal()] = new GetPlayersGameState(this);
         gameStates[EGameState.getReso.ordinal()] = new GetResoGameState(this);
-        gameStates[EGameState.election.ordinal()] = new ElectionGameState(this);
+        gameStates[EGameState.election.ordinal()] = new ElectionGameState(this); 
+        gameStates[EGameState.cardsDistribution.ordinal()] = new CardsDistributionGameState(this);
 
         this.currentGameState = gameStates[EGameState.getReso.ordinal()];
     }
