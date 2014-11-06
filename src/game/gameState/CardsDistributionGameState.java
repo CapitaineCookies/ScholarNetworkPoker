@@ -9,11 +9,11 @@ import java.rmi.RemoteException;
 import message.MsgCard;
 import message.MsgStepDone;
 import JeuCartes.Carte;
+import JeuCartes.Hand;
 import JeuCartes.JeuCartes;
 
 public class CardsDistributionGameState extends GameState {
 
-    private static final int nbCardToDistribPerPlayer = 5;
     
     JeuCartes deck;
 
@@ -38,7 +38,7 @@ public class CardsDistributionGameState extends GameState {
     private void receiveCard(MsgCard msgCard) {
         game.getPlayer().getHand().add(msgCard.getCard());
         
-        if(game.getPlayer().getHand().getSize() == nbCardToDistribPerPlayer) {
+        if(game.getPlayer().getHand().getSize() == Hand.nbCardPerPlayer) {
             notifyStepDone();
         }
     }
@@ -76,7 +76,7 @@ public class CardsDistributionGameState extends GameState {
     }
 
     private void makeDistribution() {
-        for (int i = 0; i < nbCardToDistribPerPlayer; ++i) {
+        for (int i = 0; i < Hand.nbCardPerPlayer; ++i) {
             for (Player otherPlayer : game.getOtherplayer()) {
                 sendCard(otherPlayer, deck.nvlleCarte());
             }

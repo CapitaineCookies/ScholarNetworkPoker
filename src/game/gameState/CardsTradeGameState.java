@@ -9,11 +9,13 @@ import java.util.List;
 import message.MsgCard;
 import message.MsgTradeCards;
 import JeuCartes.Carte;
+import JeuCartes.Hand;
 import JeuCartes.JeuCartes;
 
 public class CardsTradeGameState extends GameState {
 
 	JeuCartes deck;
+	Object waitRecv;
 
 	public CardsTradeGameState(Game game) {
 		super(game);
@@ -63,6 +65,10 @@ public class CardsTradeGameState extends GameState {
 
 	private void receiveCard(MsgCard msgCard) {
 		game.getPlayer().getHand().add(msgCard.getCard());
+		if(game.getPlayer().getHand().getSize() == Hand.nbCardPerPlayer) {
+			waitRecv.notify();
+		}
+			
 	}
 
 	@Override
@@ -81,6 +87,17 @@ public class CardsTradeGameState extends GameState {
 		for (; nbExchange < 0; --nbExchange) {
 			int nbCardTrad = (int) Math.random() * 5 + 1;
 			sendTardeCards(game.getPlayer().getHand().getRandomCards(nbCardTrad), EGameState.cardsDistribution);
+			waitRecev();
+		}
+	}
+
+	private void waitRecev() {
+		synchronized (waitRecv) {
+			try {
+				waitRecv.wait();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -94,7 +111,8 @@ public class CardsTradeGameState extends GameState {
 
 	@Override
 	protected void goToNextStep() {
-		// TODO Auto-generated method stub
+		System.out.println("New Cards : " + game.getPlayer().getHand());
+		game.setCurrentGameState(EGameState.exit);
 
 	}
 

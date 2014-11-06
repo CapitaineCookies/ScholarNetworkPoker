@@ -8,6 +8,9 @@ import java.util.List;
 
 public class Hand implements Serializable {
 	
+    public static final int nbCardPerPlayer = 5;
+
+	
 	List<Carte> handCards;
 
 	public Hand() {
