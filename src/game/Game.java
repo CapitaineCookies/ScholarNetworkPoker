@@ -71,6 +71,22 @@ public class Game extends UnicastRemoteObject implements Client, Runnable {
         return nextPlayer;
     }
 
+	public Player getPreviousPlayer() {
+		Player minPlayer = getMin(otherPlayers);
+        if (minPlayer == player) {
+            return getMax(otherPlayers);
+        }
+
+        Player nextPlayer = minPlayer;
+        for (Player p : otherPlayers) {
+            if (p.getID() > nextPlayer.getID() && p.getID() < player.getID()) {
+                nextPlayer = p;
+            }
+        }
+
+        return nextPlayer;
+	}
+
     private Player getMin(List<Player> otherPlayers) {
         Player minPlayer = getPlayer();
         for (Player p : otherPlayers) {
@@ -82,13 +98,13 @@ public class Game extends UnicastRemoteObject implements Client, Runnable {
     }
 
     private Player getMax(List<Player> otherPlayers) {
-        Player minPlayer = getPlayer();
+        Player maxPlayer = getPlayer();
         for (Player p : otherPlayers) {
-            if (p.getID() > minPlayer.getID()) {
-                minPlayer = p;
+            if (p.getID() > maxPlayer.getID()) {
+                maxPlayer = p;
             }
         }
-        return minPlayer;
+        return maxPlayer;
     }
 
     public Player getPlayer() {
@@ -201,5 +217,12 @@ public class Game extends UnicastRemoteObject implements Client, Runnable {
 		if(player.name.equals(name))
 			return player;
 		throw new RuntimeException("player : " + name + " unexist !");
+	}
+
+	public GameState getGameState(EGameState eGameState) {
+		for(GameState gameState : gameStates)
+			if(gameState.getEnum() == eGameState)
+				return gameState;
+		throw new RuntimeException("gameState : " + eGameState + " unexist !");
 	}
 }

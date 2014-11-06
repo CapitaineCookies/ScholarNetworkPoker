@@ -26,6 +26,10 @@ public class ExitGameState extends GameState {
 	public void receiveMessage(String from, Serializable msg) throws RemoteException {
 		ignoredMessage(from, msg);
 	}
-	
+
+	@Override
+	public EGameState getEnum() {
+		return EGameState.exit;
+	}
 
 }

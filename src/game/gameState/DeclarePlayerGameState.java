@@ -28,4 +28,8 @@ public class DeclarePlayerGameState extends GameState {
 		game.setCurrentGameState(EGameState.getPlayers);
 	}
 
+	@Override
+	public EGameState getEnum() {
+		return EGameState.declarePlayer;
+	}
 }

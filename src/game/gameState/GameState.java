@@ -30,7 +30,7 @@ public abstract class GameState {
 		this.stepDone = new Object();
 		this.game = game;
 		this.playersReady = new Vector<>();
-                nbMessageStepDone = 0;
+		nbMessageStepDone = 0;
 	}
 
 	public abstract void receiveMessage(String from, Serializable msg) throws RemoteException;
@@ -91,17 +91,16 @@ public abstract class GameState {
 			@SuppressWarnings("unused")
 			int i = 0;
 		}
-                
-                
-//		 if(nbMessageStepDone < game.getOtherplayer().size()) {
-//		 synchronized (stepOtherPlayersDone) {
-//		 try {
-//		 stepOtherPlayersDone.wait();
-//		 } catch (InterruptedException e) {
-//		 e.printStackTrace();
-//		 }
-//		 }
-//		 }
+
+		// if(nbMessageStepDone < game.getOtherplayer().size()) {
+		// synchronized (stepOtherPlayersDone) {
+		// try {
+		// stepOtherPlayersDone.wait();
+		// } catch (InterruptedException e) {
+		// e.printStackTrace();
+		// }
+		// }
+		// }
 	}
 
 	public abstract void start();
@@ -111,4 +110,6 @@ public abstract class GameState {
 	public String toString() {
 		return getClass().getSimpleName().replace("GameState", "");
 	}
+
+	public abstract EGameState getEnum();
 }

@@ -26,8 +26,9 @@ public class CardsShowGameState extends GameState {
 
 	private void receiveMsgCard(String from, MsgCard msg) {
 		game.getPlayer(from);
+		if (from.equals(game.getPreviousPlayer()) && game.getPlayer().getHand().isEmpty())
+			sendNextShowCard();
 	}
-	
 
 	@Override
 	public void start() {
@@ -54,6 +55,11 @@ public class CardsShowGameState extends GameState {
 	protected void goToNextStep() {
 		// TODO Auto-generated method stub
 
+	}
+
+	@Override
+	public EGameState getEnum() {
+		return EGameState.cardsShow;
 	}
 
 }

@@ -39,4 +39,8 @@ public class Hand implements Serializable {
 		return handCards.remove(handCards.size()-1);
 	}
 
+	public boolean isEmpty() {
+		return handCards.isEmpty();
+	}
+
 }

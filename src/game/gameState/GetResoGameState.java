@@ -10,8 +10,6 @@ import reso.Reso;
 
 public class GetResoGameState extends GameState {
 
-	
-
 	public GetResoGameState(Game game) {
 		super(game);
 	}
@@ -43,4 +41,8 @@ public class GetResoGameState extends GameState {
 		ignoredMessage(from, msg);
 	}
 
+	@Override
+	public EGameState getEnum() {
+		return EGameState.getReso;
+	}
 }
