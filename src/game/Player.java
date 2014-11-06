@@ -6,14 +6,13 @@ import JeuCartes.Hand;
 
 public class Player implements Serializable {
 
-
     private static final long serialVersionUID = -2777283647638357088L;
 
     int id;
     String name;
 
-	private Hand hand;
-    
+    private Hand hand;
+
     public Player(String name) {
         super();
         this.hand = new Hand();
@@ -47,7 +46,7 @@ public class Player implements Serializable {
         return this.id;
     }
 
-	public Hand getHand() {
-		return hand;
-	}
+    public Hand getHand() {
+        return hand;
+    }
 }
