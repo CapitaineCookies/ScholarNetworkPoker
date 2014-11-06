@@ -63,7 +63,6 @@ public class CardsDistributionGameState extends GameState {
 			makeDistribution();
 		}
 
-		waitStepDone();
 		waitOtherPlayersDone();
 		goToNextStep();
 	}
