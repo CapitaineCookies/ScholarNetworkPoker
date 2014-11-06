@@ -6,12 +6,12 @@ import java.util.List;
 
 import JeuCartes.Carte;
 
-public class MsgTrandCards extends Message {
+public class MsgTradeCards extends Message {
 
 	private static final long serialVersionUID = -6208920519785895862L;
 	List<Carte> cards;
 
-	public MsgTrandCards(List<Carte> cards, EGameState gameState) {
+	public MsgTradeCards(List<Carte> cards, EGameState gameState) {
 		super(gameState);
 		this.cards = cards;
 	}
