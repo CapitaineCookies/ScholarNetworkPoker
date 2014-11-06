@@ -1,6 +1,7 @@
 package game;
 
 import game.gameState.CardsDistributionGameState;
+import game.gameState.CardsTradeGameState;
 import game.gameState.DeclarePlayerGameState;
 import game.gameState.DistribNumberGameState;
 import game.gameState.ElectionGameState;
@@ -9,6 +10,7 @@ import game.gameState.GameState;
 import game.gameState.GameState.EGameState;
 import game.gameState.GetPlayersGameState;
 import game.gameState.GetResoGameState;
+import game.gameState.CardsShowGameState;
 
 import java.io.Serializable;
 import java.rmi.RemoteException;
@@ -47,6 +49,8 @@ public class Game extends UnicastRemoteObject implements Client, Runnable {
         gameStates[EGameState.getReso.ordinal()] = new GetResoGameState(this);
         gameStates[EGameState.election.ordinal()] = new ElectionGameState(this); 
         gameStates[EGameState.cardsDistribution.ordinal()] = new CardsDistributionGameState(this);
+        gameStates[EGameState.cardsTrade.ordinal()] = new CardsTradeGameState(this);
+        gameStates[EGameState.cardsShow.ordinal()] = new CardsShowGameState(this);
 
         this.currentGameState = gameStates[EGameState.getReso.ordinal()];
     }
@@ -187,5 +191,15 @@ public class Game extends UnicastRemoteObject implements Client, Runnable {
 		for (Player otherPlayer : otherPlayers) {
 			sendMessage(otherPlayer, msgCard);
 		}
+	}
+
+	public Player getPlayer(String name) {
+		for (Player otherPlayer : otherPlayers)
+			if (otherPlayer.name.equals(name))
+                return otherPlayer;
+            
+		if(player.name.equals(name))
+			return player;
+		throw new RuntimeException("player : " + name + " unexist !");
 	}
 }

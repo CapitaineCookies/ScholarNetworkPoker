@@ -7,21 +7,27 @@ import java.rmi.RemoteException;
 
 import message.MsgCard;
 
-public class ShowCardsGameState extends GameState {
-	
-	public ShowCardsGameState(Game game) {
+public class CardsShowGameState extends GameState {
+
+	public CardsShowGameState(Game game) {
 		super(game);
 	}
-	
+
 	public boolean isInitiator() {
 		return game.isLeader();
 	}
 
 	@Override
 	public void receiveMessage(String from, Serializable msg) throws RemoteException {
-		// TODO Auto-generated method stub
-
+		if (msg instanceof MsgCard)
+			receiveMsgCard(from, (MsgCard) msg);
+		ignoredMessage(from, msg);
 	}
+
+	private void receiveMsgCard(String from, MsgCard msg) {
+		game.getPlayer(from);
+	}
+	
 
 	@Override
 	public void start() {
@@ -32,13 +38,13 @@ public class ShowCardsGameState extends GameState {
 	}
 
 	private void showCards() {
-		if(game.isLeader())
+		if (game.isLeader())
 			sendNextShowCard();
 	}
 
 	private void sendNextShowCard() {
 		try {
-			game.sendMessageToOther(new MsgCard(game.getPlayer().getHand().pollRandomCard(), EGameState.showCards));
+			game.sendMessageToOther(new MsgCard(game.getPlayer().getHand().pollRandomCard(), EGameState.cardsShow));
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
