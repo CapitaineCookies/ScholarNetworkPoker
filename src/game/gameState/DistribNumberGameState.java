@@ -89,8 +89,9 @@ public class DistribNumberGameState extends GameState {
 
     @Override
     public synchronized void receiveMessage(String from, Serializable msg) throws RemoteException {
-       /* if (stepDoneNotified) 
-            return;*/
+       if (game.getCurrentGameState() instanceof ElectionGameState) {
+           return;
+       }
         
         if (msg instanceof MsgIdChoice) {
             

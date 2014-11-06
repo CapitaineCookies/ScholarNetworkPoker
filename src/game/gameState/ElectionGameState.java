@@ -7,76 +7,69 @@ import game.Game;
 import game.Player;
 import java.util.LinkedList;
 import java.util.Queue;
-import message.MsgToken;
+import message.MsgElection;
+import message.MsgLeader;
 
 public class ElectionGameState extends GameState {
 
-    private Queue<MsgToken> messages;
+    private boolean participant;
 
     public ElectionGameState(Game game) {
         super(game);
-        messages = new LinkedList<>();
+        participant = false;
     }
 
-    public void sendMessageToken(int id, String to) {
+    public void sendMessageElection(int id, String to) {
         try {
-            game.sendMessage(game.getPlayer().getName(), to, new MsgToken(EGameState.election, id));
+            game.sendMessage(game.getPlayer().getName(), to, new MsgElection(EGameState.election, id));
         } catch (RemoteException e) {
             e.printStackTrace();
         }
     }
 
+    public void sendMessageLeader(Player p, String to) {
+        try {
+            game.sendMessage(game.getPlayer().getName(), to, new MsgLeader(EGameState.election, p));
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+    }
+    
     @Override
     public void receiveMessage(String from, Serializable msg) throws RemoteException {
 
-        if (msg instanceof MsgToken) {
-            MsgToken msgToken = (MsgToken) msg;
-            messages.add(msgToken);
+        if (msg instanceof MsgElection) {
+            MsgElection msgElection = (MsgElection) msg;
+
+            if (msgElection.getId() > game.getPlayer().getID()) {
+                sendMessageElection(msgElection.getId(), game.getNextPlayer().getName());
+            } else if (msgElection.getId() == game.getPlayer().getID()) {
+                System.out.println(game.getPlayer().getName() + " leader = " + game.getPlayer().getName());
+                sendMessageLeader(game.getPlayer(), game.getNextPlayer().getName());
+            } else if (msgElection.getId() < game.getPlayer().getID() && !participant) {
+                participant = true;
+            }
+
+        } else if (msg instanceof MsgLeader) {
+            MsgLeader msgLeader = (MsgLeader) msg;
+            game.setLeader(msgLeader.getLeader());
+            
+            if (game.getPlayer().getID() != msgLeader.getLeader().getID()) {
+                sendMessageLeader(msgLeader.getLeader(), game.getNextPlayer().getName());
+                System.out.println(game.getPlayer().getName() + " leader = " + msgLeader.getLeader().getName());
+            }
         } else {
             ignoredMessage(from, msg);
         }
-
     }
 
     @Override
     public void start() {
 
-        //initiateur
-        //if (messages.isEmpty()) {
-            game.getPlayer().setState(Player.EState.init);
-        //}
-        
-        Player.EState state = game.getPlayer().getState();
+        participant = true;
+        sendMessageElection(game.getPlayer().getID(), game.getNextPlayer().getName());
 
-        if (state == Player.EState.init) {
-            Player nextPlayer = game.getNextPlayer();
-            sendMessageToken(game.getPlayer().getID(), nextPlayer.getName());
-
-            while (state != Player.EState.leader && state != Player.EState.lost) {
-                //...on recoit des receive...
-                if (!messages.isEmpty()) {
-                    MsgToken msg = messages.poll();
-                    
-                    if (msg.getId() == game.getPlayer().getID()) {
-                        game.getPlayer().setState(Player.EState.leader);
-                    } else {
-                        if (msg.getId() > game.getPlayer().getID()) {
-                            if (state == Player.EState.init) {
-                                game.getPlayer().setState(Player.EState.lost);
-                                sendMessageToken(msg.getId(), nextPlayer.getName());
-                            }
-                        }
-                    }
-                }
-            }
-        } else {
-            // recieve
-            // send
-        }
-
-        System.out.println(game.getPlayer().getName() + " state = " + game.getPlayer().getState());
         waitStepDone();
-
         goToNextStep();
     }
 
