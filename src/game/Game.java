@@ -35,7 +35,7 @@ public class Game extends UnicastRemoteObject implements Client, Runnable {
         this.reso = null;
         this.otherPlayers = null;
         this.player = player;
-        this.leader = null;
+        this.leader = player;
 
         gameStates = new GameState[EGameState.values().length];
 
@@ -179,8 +179,6 @@ public class Game extends UnicastRemoteObject implements Client, Runnable {
     }
 
 	public boolean isLeader() {
-		if(leader == null)
-			return true;
-		else return leader == player;
+		return leader == player;
 	}
 }
