@@ -58,7 +58,7 @@ public class CardsShowGameState extends GameState {
 	}
 
 	@Override
-	public EGameState getEnum() {
+	public EGameState getEGameState() {
 		return EGameState.cardsShow;
 	}
 

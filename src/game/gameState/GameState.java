@@ -111,5 +111,5 @@ public abstract class GameState {
 		return getClass().getSimpleName().replace("GameState", "");
 	}
 
-	public abstract EGameState getEnum();
+	public abstract EGameState getEGameState();
 }

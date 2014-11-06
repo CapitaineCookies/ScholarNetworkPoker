@@ -221,7 +221,7 @@ public class Game extends UnicastRemoteObject implements Client, Runnable {
 
 	public GameState getGameState(EGameState eGameState) {
 		for(GameState gameState : gameStates)
-			if(gameState.getEnum() == eGameState)
+			if(gameState.getEGameState() == eGameState)
 				return gameState;
 		throw new RuntimeException("gameState : " + eGameState + " unexist !");
 	}

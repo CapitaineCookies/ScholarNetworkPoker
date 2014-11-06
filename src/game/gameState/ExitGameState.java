@@ -28,7 +28,7 @@ public class ExitGameState extends GameState {
 	}
 
 	@Override
-	public EGameState getEnum() {
+	public EGameState getEGameState() {
 		return EGameState.exit;
 	}
 

@@ -110,7 +110,7 @@ public class GetPlayersGameState extends GameState {
 	}
 
 	@Override
-	public EGameState getEnum() {
+	public EGameState getEGameState() {
 		return EGameState.getPlayers;
 	}
 }

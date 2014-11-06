@@ -97,7 +97,7 @@ public class CardsDistributionGameState extends GameState {
     }
 
     @Override
-    public EGameState getEnum() {
+    public EGameState getEGameState() {
         return EGameState.cardsDistribution;
     }
 

@@ -29,7 +29,7 @@ public class DeclarePlayerGameState extends GameState {
 	}
 
 	@Override
-	public EGameState getEnum() {
+	public EGameState getEGameState() {
 		return EGameState.declarePlayer;
 	}
 }
