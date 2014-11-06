@@ -14,5 +14,10 @@ public class Carte implements Serializable {
 	public void affiche() {
 		System.out.println("Carte: " + figure + " de " + couleur);
 	}
+        
+        @Override
+        public String toString() {
+            return figure + " de " + couleur;
+        }
 
 }

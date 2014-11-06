@@ -200,7 +200,7 @@ public class Game extends UnicastRemoteObject implements Client, Runnable {
     }
 
 	public boolean isLeader() {
-		return leader == player;
+		return leader.equals(player);
 	}
 
 	public void sendMessageToOther(MsgCard msgCard) throws RemoteException {

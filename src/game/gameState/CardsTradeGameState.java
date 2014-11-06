@@ -39,14 +39,16 @@ public class CardsTradeGameState extends GameState {
 		if (!game.isLeader())
 			throw new RuntimeException();
 
-		// Add cards trade to deck
-		for (Carte carte : msg.getCards()) {
-			deck.ajoutCarte(carte);
-		}
+                synchronized(deck) {
+                    // Add cards trade to deck
+                    for (Carte carte : msg.getCards()) {
+                            deck.ajoutCarte(carte);
+                    }
 
-		// Give new cards
-		for (int i = 0; i < nbCardsTarde; ++i)
-			sendCard(from, deck.nvlleCarte());
+                    // Give new cards
+                    for (int i = 0; i < nbCardsTarde; ++i)
+                            sendCard(from, deck.nvlleCarte());
+                }
 
 	}
 

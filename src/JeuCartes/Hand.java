@@ -42,5 +42,13 @@ public class Hand implements Serializable {
 	public boolean isEmpty() {
 		return handCards.isEmpty();
 	}
+        
+        public int getSize() {
+            return handCards.size();
+        }
 
+    @Override
+    public String toString() {
+        return handCards.toString();
+    }
 }

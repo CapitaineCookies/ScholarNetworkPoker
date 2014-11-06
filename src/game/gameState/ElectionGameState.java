@@ -37,7 +37,10 @@ public class ElectionGameState extends GameState {
 
 	@Override
 	public void receiveMessage(String from, Serializable msg) throws RemoteException {
-
+		if (game.getCurrentGameState() instanceof CardsDistributionGameState) {
+			ignoredMessage(from, msg);
+		}
+                
 		if (msg instanceof MsgElection) {
 			MsgElection msgElection = (MsgElection) msg;
 
@@ -46,6 +49,7 @@ public class ElectionGameState extends GameState {
 			} else if (msgElection.getId() == game.getPlayer().getID()) {
 				System.out.println(game.getPlayer().getName() + " leader = " + game.getPlayer().getName());
 				sendMessageLeader(game.getPlayer(), game.getNextPlayer().getName());
+                                game.setLeader(game.getPlayer());
 				notifyStepDone();
 			} else if (msgElection.getId() < game.getPlayer().getID() && !participant) {
 				participant = true;
@@ -57,7 +61,9 @@ public class ElectionGameState extends GameState {
 
 			if (game.getPlayer().getID() != msgLeader.getLeader().getID()) {
 				sendMessageLeader(msgLeader.getLeader(), game.getNextPlayer().getName());
+                                game.setLeader(msgLeader.getLeader());
 				System.out.println(game.getPlayer().getName() + " leader = " + msgLeader.getLeader().getName());
+                                notifyStepDone();
 			}
 		} else if (msg instanceof MsgStepDone) {
 			super.receiveStepDone(from);
@@ -83,7 +89,7 @@ public class ElectionGameState extends GameState {
 		}
 
 		waitOtherPlayersDone();
-		game.setCurrentGameState(EGameState.exit);
+		game.setCurrentGameState(EGameState.cardsDistribution);
 	}
 
 	@Override
