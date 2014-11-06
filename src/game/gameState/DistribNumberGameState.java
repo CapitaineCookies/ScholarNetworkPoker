@@ -11,6 +11,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import message.MsgIdChoice;
 import message.MsgIdOk;
+import message.MsgStepDone;
 import message.MsgSync;
 
 public class DistribNumberGameState extends GameState {
@@ -81,20 +82,24 @@ public class DistribNumberGameState extends GameState {
 
     @Override
     protected void goToNextStep() {
-        System.out.println("goToNextStep");
+        for (Player p : game.getOtherplayer()) {
+            sendMsgStepDone(p.getName(), EGameState.distribNumber);
+        }
 
+        waitOtherPlayersDone();
+        System.out.println("goToNextStep");
         System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" + game.getPlayer() + " : " + game.getOtherplayer());
         game.setCurrentGameState(EGameState.election);
     }
 
     @Override
     public synchronized void receiveMessage(String from, Serializable msg) throws RemoteException {
-       if (game.getCurrentGameState() instanceof ElectionGameState) {
-           return;
-       }
-        
+        if (game.getCurrentGameState() instanceof ElectionGameState) {
+            return;
+        }
+
         if (msg instanceof MsgIdChoice) {
-            
+
             MsgIdChoice msgIdChoice = (MsgIdChoice) msg;
 
             for (Player p : game.getOtherplayer()) {
@@ -146,8 +151,13 @@ public class DistribNumberGameState extends GameState {
             nbMsgIdOk++;
             System.out.println(game.getPlayer().getName() + "msgIdOk : " + nbMsgIdOk + "/" + game.getOtherplayer().size());
             if (nbMsgIdOk == game.getOtherplayer().size()) {
+                System.out.println(">>>>>>>>>>>>>>>>>>< NOTIFY STEP DONE DISTRIB NUMBER");
                 notifyStepDone();
             }
+        } else if (msg instanceof MsgStepDone) {
+            super.receiveStepDone(from);
+        } else {
+            ignoredMessage(from, msg);
         }
 
     }

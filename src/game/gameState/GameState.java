@@ -24,12 +24,13 @@ public abstract class GameState {
 	protected Game game;
 	protected List<Player> playersReady;
 
-	private int nbMessageStepDone = 0;
+	private int nbMessageStepDone;
 
 	public GameState(Game game) {
 		this.stepDone = new Object();
 		this.game = game;
 		this.playersReady = new Vector<>();
+                nbMessageStepDone = 0;
 	}
 
 	public abstract void receiveMessage(String from, Serializable msg) throws RemoteException;
@@ -86,11 +87,12 @@ public abstract class GameState {
 	}
 
 	protected void waitOtherPlayersDone() {
-
 		while (nbMessageStepDone < game.getOtherplayer().size()) {
 			@SuppressWarnings("unused")
 			int i = 0;
 		}
+                
+                
 //		 if(nbMessageStepDone < game.getOtherplayer().size()) {
 //		 synchronized (stepOtherPlayersDone) {
 //		 try {

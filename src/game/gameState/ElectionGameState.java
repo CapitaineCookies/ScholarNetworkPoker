@@ -9,6 +9,7 @@ import java.util.LinkedList;
 import java.util.Queue;
 import message.MsgElection;
 import message.MsgLeader;
+import message.MsgStepDone;
 
 public class ElectionGameState extends GameState {
 
@@ -34,7 +35,7 @@ public class ElectionGameState extends GameState {
             e.printStackTrace();
         }
     }
-    
+
     @Override
     public void receiveMessage(String from, Serializable msg) throws RemoteException {
 
@@ -46,6 +47,7 @@ public class ElectionGameState extends GameState {
             } else if (msgElection.getId() == game.getPlayer().getID()) {
                 System.out.println(game.getPlayer().getName() + " leader = " + game.getPlayer().getName());
                 sendMessageLeader(game.getPlayer(), game.getNextPlayer().getName());
+                notifyStepDone();
             } else if (msgElection.getId() < game.getPlayer().getID() && !participant) {
                 participant = true;
             }
@@ -53,11 +55,13 @@ public class ElectionGameState extends GameState {
         } else if (msg instanceof MsgLeader) {
             MsgLeader msgLeader = (MsgLeader) msg;
             game.setLeader(msgLeader.getLeader());
-            
+
             if (game.getPlayer().getID() != msgLeader.getLeader().getID()) {
                 sendMessageLeader(msgLeader.getLeader(), game.getNextPlayer().getName());
                 System.out.println(game.getPlayer().getName() + " leader = " + msgLeader.getLeader().getName());
             }
+        } else if (msg instanceof MsgStepDone) {
+            super.receiveStepDone(from);
         } else {
             ignoredMessage(from, msg);
         }
@@ -75,7 +79,12 @@ public class ElectionGameState extends GameState {
 
     @Override
     protected void goToNextStep() {
-        game.setCurrentGameState(EGameState.getPlayers);
+        for (Player p : game.getOtherplayer()) {
+            sendMsgStepDone(p.getName(), EGameState.election);
+        }
+
+        waitOtherPlayersDone();
+        game.setCurrentGameState(EGameState.exit);
     }
 
 }
