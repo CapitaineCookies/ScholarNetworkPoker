@@ -14,6 +14,7 @@ public abstract class GameState {
     public enum EGameState {
 
         declarePlayer,
+        election,
         distribNumber,
         exit,
         getPlayers,
