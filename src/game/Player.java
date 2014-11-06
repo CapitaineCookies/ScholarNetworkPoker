@@ -4,26 +4,16 @@ import java.io.Serializable;
 
 public class Player implements Serializable {
 
-    public enum EState {
-
-        init,
-        leader,
-        lost,
-        sleep
-    }
-
 
     private static final long serialVersionUID = -2777283647638357088L;
 
     int id;
     String name;
-    private EState state;
     
     public Player(String name) {
         super();
         this.name = name;
         this.id = 0;
-        this.state = EState.sleep;
     }
 
     public String getName() {
@@ -50,13 +40,5 @@ public class Player implements Serializable {
 
     public int getID() {
         return this.id;
-    }
-    
-    public void setState(EState state) {
-        this.state = state;
-    }
-    
-    public EState getState() {
-        return this.state;
     }
 }

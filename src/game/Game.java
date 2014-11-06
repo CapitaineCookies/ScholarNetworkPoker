@@ -28,6 +28,7 @@ public class Game extends UnicastRemoteObject implements Client, Runnable {
 
     protected Reso reso;
     protected Player player;
+    protected Player leader;
     protected GameState currentGameState;
     protected GameState gameStates[];
     protected List<Player> otherPlayers;
@@ -37,6 +38,7 @@ public class Game extends UnicastRemoteObject implements Client, Runnable {
         this.reso = null;
         this.otherPlayers = null;
         this.player = player;
+        this.leader = null;
 
         gameStates = new GameState[EGameState.values().length];
 
@@ -109,6 +111,15 @@ public class Game extends UnicastRemoteObject implements Client, Runnable {
         this.otherPlayers = otherPlayers;
     }
 
+    public void setLeader(Player leader) {
+        this.leader = leader;
+    }
+
+    public Player getLeader() {
+        return leader;
+    }
+
+    
     @Override
     public void receiveMessage(String from, Serializable msg) throws RemoteException {
         System.out.println(currentGameState.toString() + " " + player.getName() + " : Received from " + from + ": " + msg);
