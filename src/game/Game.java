@@ -177,4 +177,10 @@ public class Game extends UnicastRemoteObject implements Client, Runnable {
         }
         return false;
     }
+
+	public boolean isLeader() {
+		if(leader == null)
+			return true;
+		else return leader == player;
+	}
 }
