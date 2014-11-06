@@ -2,6 +2,8 @@ package game;
 
 import java.io.Serializable;
 
+import JeuCartes.Hand;
+
 public class Player implements Serializable {
 
 
@@ -9,9 +11,12 @@ public class Player implements Serializable {
 
     int id;
     String name;
+
+	private Hand hand;
     
     public Player(String name) {
         super();
+        this.hand = new Hand();
         this.name = name;
         this.id = 0;
     }
@@ -41,4 +46,8 @@ public class Player implements Serializable {
     public int getID() {
         return this.id;
     }
+
+	public Hand getHand() {
+		return hand;
+	}
 }

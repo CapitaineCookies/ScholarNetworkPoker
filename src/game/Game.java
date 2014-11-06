@@ -16,6 +16,7 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.List;
 
 import message.Message;
+import message.MsgCard;
 import reso.Client;
 import reso.Reso;
 
@@ -180,5 +181,11 @@ public class Game extends UnicastRemoteObject implements Client, Runnable {
 
 	public boolean isLeader() {
 		return leader == player;
+	}
+
+	public void sendMessageToOther(MsgCard msgCard) throws RemoteException {
+		for (Player otherPlayer : otherPlayers) {
+			sendMessage(otherPlayer, msgCard);
+		}
 	}
 }

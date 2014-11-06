@@ -28,9 +28,14 @@ public class Hand {
 		Collections.shuffle(handCards);
 		
 		for(int i = 0; i < nbCardTrad; ++i)
-			cards.add(handCards.remove(handCards.size()-1));
+			cards.add(pollRandomCard());
 		
 		return cards;
+	}
+
+	public Carte pollRandomCard() {
+		Collections.shuffle(handCards);
+		return handCards.remove(handCards.size()-1);
 	}
 
 }

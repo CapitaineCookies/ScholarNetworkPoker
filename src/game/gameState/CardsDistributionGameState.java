@@ -11,29 +11,16 @@ import message.MsgCard;
 import message.MsgStepDone;
 import message.MsgTradeCards;
 import JeuCartes.Carte;
-import JeuCartes.Hand;
 import JeuCartes.JeuCartes;
 
 public class CardsDistributionGameState extends GameState {
 
 	private static final int nbCardToDistribPerPlayer = 5;
 	
-	private Hand hand;
-	private Player master;
 	JeuCartes deck;
-
-	public void setMaster(Player master) {
-		this.master = master;
-	}
-
-	private boolean isMaster() {
-		return master == game.getPlayer();
-	}
 
 	public CardsDistributionGameState(Game game) {
 		super(game);
-		this.hand = new Hand();
-		this.master = null;
 		this.deck = null;
 	}
 
@@ -52,7 +39,7 @@ public class CardsDistributionGameState extends GameState {
 	private void receiveTradeCards(String from, MsgTradeCards msg) {
 		int nbCardsTarde = msg.getCards().size();
 		
-		if (!isMaster())
+		if (!game.isLeader())
 			throw new RuntimeException();
 		
 		// Add cards trade to deck
@@ -67,12 +54,12 @@ public class CardsDistributionGameState extends GameState {
 	}
 
 	public void receiveCard(MsgCard msgCard) {
-		hand.add(msgCard.getCard());
+		game.getPlayer().getHand().add(msgCard.getCard());
 	}
 
 	@Override
 	public void start() {
-		if (isMaster()) {
+		if (game.isLeader()) {
 			getDeck();
 			makeDistribution();
 		}
@@ -120,13 +107,13 @@ public class CardsDistributionGameState extends GameState {
 		int nbExchange = (int) Math.random() * 4; // 0, 1, 2 or 3
 		for (; nbExchange < 0; --nbExchange) {
 			int nbCardTrad = (int) Math.random() * 5 + 1;
-			sendTardCards(hand.getRandomCards(nbCardTrad), EGameState.cardsDistribution);
+			sendTardCards(game.getPlayer().getHand().getRandomCards(nbCardTrad), EGameState.cardsDistribution);
 		}
 	}
 
 	private void sendTardCards(List<Carte> cards, EGameState cardsdistribution) {
 		try {
-			game.sendMessage(master, new MsgTradeCards(cards, EGameState.cardsDistribution));
+			game.sendMessage(game.getLeader(), new MsgTradeCards(cards, EGameState.cardsDistribution));
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
