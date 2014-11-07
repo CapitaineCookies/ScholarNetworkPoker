@@ -1,6 +1,7 @@
 package game;
 
 import game.gameState.CardsDistributionGameState;
+import game.gameState.CardsShowGameState;
 import game.gameState.CardsTradeGameState;
 import game.gameState.DeclarePlayerGameState;
 import game.gameState.DistribNumberGameState;
@@ -10,15 +11,14 @@ import game.gameState.GameState;
 import game.gameState.GameState.EGameState;
 import game.gameState.GetPlayersGameState;
 import game.gameState.GetResoGameState;
-import game.gameState.CardsShowGameState;
 
 import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.List;
+import java.util.Vector;
 
 import message.Message;
-import message.MsgCard;
 import reso.Client;
 import reso.Reso;
 
@@ -36,7 +36,7 @@ public class Game extends UnicastRemoteObject implements Client, Runnable {
     public Game(Player player) throws RemoteException {
         super();
         this.reso = null;
-        this.otherPlayers = null;
+        this.otherPlayers = new Vector<Player>();
         this.player = player;
         this.leader = player;
 
@@ -141,17 +141,18 @@ public class Game extends UnicastRemoteObject implements Client, Runnable {
 
     @Override
     public void receiveMessage(String from, Serializable msg) throws RemoteException {
-        System.out.println(((Message) msg).getGameState() + " " + player.getName() + " : Received from " + from + ": " + msg);
+        System.out.println("[" + player.getName() + "][" + ((Message) msg).getGameState() + "][Received] from [" + from + "] " + msg);
         gameStates[((Message) msg).getGameState().ordinal()].receiveMessage(from, msg);
         // currentGameState.receiveMessage(from, msg);
     }
 
     public void sendMessage(String from, String to, Message message) throws RemoteException {
+        System.out.println("[" + player.getName() + "][" + message.getGameState() + "][Send] to [" + to + "] " + message);
         reso.sendMessage(from, to, message);
     }
 
     public void sendMessage(String to, Message message) throws RemoteException {
-        reso.sendMessage(player.getName(), to, message);
+        sendMessage(player.getName(), to, message);
     }
 
     public void sendMessage(Player to, Message message) throws RemoteException {
@@ -159,6 +160,7 @@ public class Game extends UnicastRemoteObject implements Client, Runnable {
     }
 
     public void broadcastMessage(String from, Message message) throws RemoteException {
+        System.out.println("[" + player.getName() + "][" + message.getGameState() + "][Broadcast] " + message);
         reso.broadcastMessage(from, message);
     }
 
@@ -168,10 +170,10 @@ public class Game extends UnicastRemoteObject implements Client, Runnable {
 
     public void startGame() {
         do {
-            System.out.println(player.getName() + " " + currentGameState + " start");
+            System.out.println("[" + player.getName() + "][" + currentGameState + "] start");
             currentGameState.start();
         } while (!(currentGameState instanceof ExitGameState));
-
+        System.out.println("[" + player.getName() + "][" + currentGameState + "]");
     }
 
     @Override
@@ -203,9 +205,9 @@ public class Game extends UnicastRemoteObject implements Client, Runnable {
 		return leader.equals(player);
 	}
 
-	public void sendMessageToOther(MsgCard msgCard) throws RemoteException {
+	public void sendMessageToOther(Message messsage) throws RemoteException {
 		for (Player otherPlayer : otherPlayers) {
-			sendMessage(otherPlayer, msgCard);
+			sendMessage(otherPlayer, messsage);
 		}
 	}
 

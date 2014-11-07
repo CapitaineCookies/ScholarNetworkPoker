@@ -21,12 +21,13 @@ public class CardsShowGameState extends GameState {
 	public void receiveMessage(String from, Serializable msg) throws RemoteException {
 		if (msg instanceof MsgCard)
 			receiveMsgCard(from, (MsgCard) msg);
-		ignoredMessage(from, msg);
+		else
+			ignoredMessage(from, msg);
 	}
 
 	private void receiveMsgCard(String from, MsgCard msg) {
 		game.getPlayer(from);
-		if (from.equals(game.getPreviousPlayer()) && game.getPlayer().getHand().isEmpty())
+		if (from.equals(game.getPreviousPlayer()) && !game.getPlayer().getHand().isEmpty())
 			sendNextShowCard();
 	}
 
@@ -45,7 +46,7 @@ public class CardsShowGameState extends GameState {
 
 	private void sendNextShowCard() {
 		try {
-			game.sendMessageToOther(new MsgCard(game.getPlayer().getHand().pollRandomCard(), EGameState.cardsShow));
+			game.sendMessageToOther(new MsgCard(game.getPlayer().getHand().pollRandomCard(), getEGameState()));
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}

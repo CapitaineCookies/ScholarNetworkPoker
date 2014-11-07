@@ -13,6 +13,7 @@ import message.MsgCard;
 import message.MsgGetCriticalSection;
 import message.MsgObtainCriticalSection;
 import message.MsgReleaseCriticalSection;
+import message.MsgStepDone;
 import message.MsgTradeCards;
 import JeuCartes.Carte;
 import JeuCartes.JeuCartes;
@@ -52,12 +53,14 @@ public class CardsTradeGameState extends GameState {
 			receiveGetCriticalSection(from);
 		else if (msg instanceof MsgReleaseCriticalSection)
 			receiveReleaseCriticalSection(from);
-		
+
 		// Common :
 		else if (msg instanceof MsgObtainCriticalSection)
 			receiveObtainCriticalSection(from);
 		else if (msg instanceof MsgCard)
 			receiveCard((MsgCard) msg);
+		else if (msg instanceof MsgStepDone)
+			receiveStepDone(from);
 		else
 			ignoredMessage(from, msg);
 	}
@@ -66,8 +69,6 @@ public class CardsTradeGameState extends GameState {
 		waitCriticalSection.release();
 	}
 
-	
-
 	private void receiveCard(MsgCard msgCard) {
 		game.getPlayer().getHand().add(msgCard.getCard());
 		waitCardsReception.release();
@@ -75,12 +76,15 @@ public class CardsTradeGameState extends GameState {
 
 	@Override
 	public void start() {
-		if (game.isLeader())
+		if (game.isLeader()) {
+			System.out.println("[" + getPlayerName() + "][" + getEGameState() + "][start] thread");
 			startTradeThread();
+		}
 
 		tradeHisCards();
 
-		waitStepDone();
+		// waitStepDone();
+		sendMsgStepDoneToOther(getEGameState());
 		waitOtherPlayersDone();
 		goToNextStep();
 	}
@@ -92,17 +96,29 @@ public class CardsTradeGameState extends GameState {
 
 	private void tradeHisCards() {
 
-		int nbExchange = (int) Math.random() * 4; // 0, 1, 2 or 3
-		for (; nbExchange < 0; --nbExchange) {
+		int nbExchange = (int) (Math.random() * 3) + 1; // 0, 1, 2 or 3
+		for (int i = 0; i < nbExchange; ++i) {
+			System.out.println("[" + getPlayerName() + "][" + getEGameState() + "] trade [" + i + '/' + nbExchange
+					+ ']');
 			getCriticalSection();
+			System.out.println("get criticalSection");
 			waitCriticalSection();
-			
+			System.out.println("wait criticalSection");
+
 			int nbCardsTrade = (int) Math.random() * 5 + 1;
 			sendTardeCards(game.getPlayer().getHand().getRandomCards(nbCardsTrade));
 
+			System.out.println("send cardReception");
 			waitCardsReception(nbCardsTrade);
+
+			System.out.println("wait cardReception");
 			releaseCriticalSection();
+			System.out.println("release criticalSection");
+
 		}
+		System.out.println("[" + getPlayerName() + "][" + getEGameState() + "] trade [Done]");
+
+		// TODO notify step done ?
 	}
 
 	private void releaseCriticalSection() {
@@ -141,7 +157,7 @@ public class CardsTradeGameState extends GameState {
 
 	private void sendTardeCards(List<Carte> cards) {
 		try {
-			game.sendMessage(game.getLeader(), new MsgTradeCards(cards, EGameState.cardsDistribution));
+			game.sendMessage(game.getLeader(), new MsgTradeCards(cards, getEGameState()));
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
@@ -152,7 +168,7 @@ public class CardsTradeGameState extends GameState {
 		System.out.println("New Cards : " + game.getPlayer().getHand());
 		if (criticalSectionSender != null)
 			criticalSectionSender.stop();
-		game.setCurrentGameState(EGameState.exit);
+		game.setCurrentGameState(EGameState.cardsShow);
 
 	}
 
@@ -160,23 +176,27 @@ public class CardsTradeGameState extends GameState {
 	public EGameState getEGameState() {
 		return EGameState.cardsTrade;
 	}
-	
+
 	// *******************************
 	// Leader
 	// *******************************
 
-
 	private synchronized void receiveGetCriticalSection(String from) {
 		if (!game.isLeader())
 			throw new RuntimeException(game.getPlayer() + " isn't leader !");
-		
-		criticalSectionSender.add(from);
+
+
+		synchronized (waitingList) {
+			waitingList.add(from);
+			waitingList.notify();
+			// TODO notify a thread in the same synchronized object than the notify
+		}
 	}
-	
+
 	private void receiveReleaseCriticalSection(String from) {
 		criticalSectionSender.releaseCriticalSection();
 	}
-	
+
 	private void receiveTradeCards(String from, MsgTradeCards msg) {
 		int nbCardsTarde = msg.getCards().size();
 
@@ -200,7 +220,7 @@ public class CardsTradeGameState extends GameState {
 	// Same in cardsDistrib
 	private void sendCard(String player, Carte card) {
 		try {
-			game.sendMessage(player, new MsgCard(card, EGameState.cardsDistribution));
+			game.sendMessage(player, new MsgCard(card, getEGameState()));
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
@@ -216,14 +236,6 @@ public class CardsTradeGameState extends GameState {
 			this.gameThread = game;
 			this.queueThread = queue;
 			this.criticalSectionLocker = new Semaphore(1);
-		}
-		
-		public void add(String from) {
-			synchronized (queueThread) {
-				queueThread.add(from);
-				queueThread.notify();
-				// TODO notify a thread in the same synchronized object than the notify
-			}
 		}
 
 		public void releaseCriticalSection() {
@@ -242,6 +254,7 @@ public class CardsTradeGameState extends GameState {
 				getCriticalSection();
 				sendCriticalSection();
 			}
+			System.out.println("[" + getPlayerName() + "][" + getEGameState() + "][end] thread");
 		}
 
 		private void sendCriticalSection() {

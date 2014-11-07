@@ -43,6 +43,14 @@ public abstract class GameState {
 		return game.getPlayer().getName();
 	}
 
+	protected void sendMsgStepDoneToOther(EGameState gameState) {
+		try {
+			game.sendMessageToOther(new MsgStepDone(gameState));			
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		}
+	}
+
 	protected void sendMsgStepDone(String to, EGameState gameState) {
 		String playerName = game.getPlayer().getName();
 		try {
@@ -76,7 +84,7 @@ public abstract class GameState {
 		}
 	}
 
-	protected void receiveStepDone(String from) {
+	protected synchronized void receiveStepDone(String from) {
 		nbMessageStepDone++;
 		System.out.println("nbMessageStepDone=" + nbMessageStepDone + "/" + game.getOtherplayer().size());
 		if (nbMessageStepDone == game.getOtherplayer().size()) {

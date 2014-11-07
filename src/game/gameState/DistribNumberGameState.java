@@ -46,11 +46,9 @@ public class DistribNumberGameState extends GameState {
 		}
 	}
 
-	public void sendIdMessage(String p) {
-		String playerName = game.getPlayer().getName();
-
+	public void sendIdMessage(String otherPlayer) {
 		try {
-			game.sendMessage(playerName, p, new MsgIdChoice(game.getPlayer().getID(), EGameState.distribNumber));
+			game.sendMessage(otherPlayer, new MsgIdChoice(game.getPlayer().getID(), EGameState.distribNumber));
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
@@ -58,20 +56,12 @@ public class DistribNumberGameState extends GameState {
 
 	@Override
 	public void start() {
-		// TODO: il faut que tout les processus soient prêt avant de commencer à
-		// envoyer des messages = réussir a supprimer le sleeeeep :)
-
-		/*
-		 * try { Thread.sleep(10000); } catch (InterruptedException ex) {
-		 * Logger.
-		 * getLogger(DistribNumberGameState.class.getName()).log(Level.SEVERE,
-		 * null, ex); }
-		 */
 		int taille = game.getOtherplayer().size() + 1;
 		int id = (int) (Math.random() * taille);
 
 		game.getPlayer().setID(id);
 
+//		game.sendMessageToOther(messsage);
 		for (Player p : game.getOtherplayer()) {
 			sendIdMessage(p.getName());
 		}
@@ -82,11 +72,10 @@ public class DistribNumberGameState extends GameState {
 
 	@Override
 	protected void goToNextStep() {
-		for (Player p : game.getOtherplayer()) {
-			sendMsgStepDone(p.getName(), EGameState.distribNumber);
-		}
-
+		
+		sendMsgStepDoneToOther(EGameState.distribNumber);
 		waitOtherPlayersDone();
+		
 		System.out.println("goToNextStep");
 		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" + game.getPlayer() + " : " + game.getOtherplayer());
 		game.setCurrentGameState(EGameState.election);

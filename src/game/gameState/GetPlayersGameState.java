@@ -10,9 +10,9 @@ import java.util.Vector;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import message.MsgPlayers;
 import message.MsgPlaying;
 import message.MsgPlayingToo;
-import message.MsgPlayers;
 import message.MsgStepDone;
 
 public class GetPlayersGameState extends GameState {
@@ -24,7 +24,7 @@ public class GetPlayersGameState extends GameState {
 	public GetPlayersGameState(Game game) {
 		super(game);
 		this.recieveplayers = false;
-		this.playersWantToPlay = new Vector<Player>();
+		this.playersWantToPlay = game.getOtherplayer();
 		this.scheduler = new ScheduledThreadPoolExecutor(1);
 	}
 
@@ -32,6 +32,7 @@ public class GetPlayersGameState extends GameState {
 	public synchronized void receiveMessage(String from, Serializable msg) throws RemoteException {
 
 		// TODO synchronized
+		// TODO check list send, contain player twice !
 		if (msg instanceof MsgPlayers && !recieveplayers) {
 			recieveplayers = true;
 			MsgPlayers msgPlayers = (MsgPlayers) msg;
@@ -45,7 +46,7 @@ public class GetPlayersGameState extends GameState {
 			}
 
 		} else if (msg instanceof MsgPlayingToo) {
-			if (!game.containPlayer(from)) {
+			if (!playersWantToPlay.contains(from)) {
 				playersWantToPlay.add(new Player(from));
 			}
 
@@ -59,8 +60,8 @@ public class GetPlayersGameState extends GameState {
 
 	@Override
 	public void start() {
-		sendPlayingMessage();
 		startChrono();
+		sendPlayingMessage();
 		waitStepDone();
 		goToNextStep();
 	}
@@ -70,7 +71,8 @@ public class GetPlayersGameState extends GameState {
 			@Override
 			public void run() {
 				try {
-					game.broadcastMessage(game.getPlayer().getName(), new MsgPlayers(playersWantToPlay, EGameState.getPlayers));
+					game.broadcastMessage(game.getPlayer().getName(), new MsgPlayers(playersWantToPlay,
+							EGameState.getPlayers));
 				} catch (RemoteException e) {
 					e.printStackTrace();
 				}
@@ -95,10 +97,7 @@ public class GetPlayersGameState extends GameState {
 			playersWantToPlay.remove(game.getPlayer());
 			game.setOtherPlayer(playersWantToPlay);
 
-			for (Player p : game.getOtherplayer()) {
-				sendMsgStepDone(p.getName(), EGameState.getPlayers);
-			}
-
+			sendMsgStepDoneToOther(EGameState.getPlayers);
 			waitOtherPlayersDone();
 
 			game.setCurrentGameState(EGameState.distribNumber);
