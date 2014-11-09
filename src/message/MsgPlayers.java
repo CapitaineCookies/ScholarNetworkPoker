@@ -1,26 +1,36 @@
 package message;
 
-import game.Player;
+import game.RemotePlayer;
 import game.gameState.GameState.EGameState;
 
-import java.util.List;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 public class MsgPlayers extends Message {
 
     private static final long serialVersionUID = 5477700306721984176L;
-    List<Player> players;
+    Collection<String> players;
 
-    public MsgPlayers(List<Player> players, EGameState gameState) {
+    public MsgPlayers(Collection<String> players, EGameState gameState) {
         super(gameState);
         this.players = players;
     }
 
-    public List<Player> getPlayers() {
-        return players;
+    public Set<RemotePlayer> getPlayers() {
+    	Set<RemotePlayer> remotePlayers = new HashSet<RemotePlayer>(players.size());
+    	for(String player : players)
+    		remotePlayers.add(new RemotePlayer(player));
+        return remotePlayers;
     }
 
-    public void setPlayers(List<Player> players) {
+    public void setPlayers(Collection<String> players) {
         this.players = players;
+    }
+    
+    @Override
+    public String msgContains() {
+    	return players.toString();
     }
 
 }

@@ -14,10 +14,15 @@ public abstract class GameState {
 
 	public enum EGameState {
 
-		declarePlayer, election, distribNumber, exit, getPlayers, getReso, cardsDistribution, cardsShow, cardsTrade,
-
+		getReso, declaration, getOthers, distribNumber, election, cardsDistribution, cardsShow, cardsTrade, exit;
+		
+		@Override
+		public String toString() {
+			char firstChar = super.toString().charAt(0);
+			return Character.toUpperCase(firstChar) + super.toString().substring(1);
+		}
 	}
-
+	
 	protected int nbMsgSyncState;
 	protected Object stepDone;
 	protected Object stepOtherPlayersDone;
@@ -36,7 +41,7 @@ public abstract class GameState {
 	public abstract void receiveMessage(String from, Serializable msg) throws RemoteException;
 
 	protected void ignoredMessage(String from, Serializable msg) {
-		System.out.println("Message ignored : " + from + " : " + msg);
+		System.out.println("Message from " + from + " ignored");
 	}
 
 	protected String getPlayerName() {
@@ -86,8 +91,8 @@ public abstract class GameState {
 
 	protected synchronized void receiveStepDone(String from) {
 		nbMessageStepDone++;
-		System.out.println("nbMessageStepDone=" + nbMessageStepDone + "/" + game.getOtherplayer().size());
-		if (nbMessageStepDone == game.getOtherplayer().size()) {
+		System.out.println("nbMessageStepDone=" + nbMessageStepDone + "/" + game.getOtherplayers().size());
+		if (nbMessageStepDone == game.getOtherplayers().size()) {
 			notifyOtherPlayersDone();
 			System.out.println("Is notify");
 		}
@@ -95,7 +100,7 @@ public abstract class GameState {
 	}
 
 	protected void waitOtherPlayersDone() {
-		while (nbMessageStepDone < game.getOtherplayer().size()) {
+		while (nbMessageStepDone < game.getOtherplayers().size()) {
 			@SuppressWarnings("unused")
 			int i = 0;
 		}
@@ -116,7 +121,8 @@ public abstract class GameState {
 	protected abstract void goToNextStep();
 
 	public String toString() {
-		return getClass().getSimpleName().replace("GameState", "");
+		String name = getClass().getSimpleName().replace("GameState", "");
+		return Character.toUpperCase(name.charAt(0)) + name.substring(1);
 	}
 
 	public abstract EGameState getEGameState();

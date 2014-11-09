@@ -6,30 +6,44 @@
 
 package message;
 
-import game.Player;
 import game.gameState.GameState.EGameState;
 
 /**
- *
+ * 
  * @author rgrimmer
  */
 public class MsgLeader extends Message {
-    
-    private Player leader;
-    
-    public MsgLeader(EGameState gameState, Player p) {
-        super(gameState);
-        this.leader = p; 
-    }
 
-    public Player getLeader() {
-        return leader;
-    }
+	private static final long serialVersionUID = 5028715142368247042L;
 
-    public void setLeader(Player p) {
-        this.leader = p;
-    }
-    
-    
+	private String leaderName;
+	private int leaderID;
+
+	public MsgLeader(String leaderName, int leaderID, EGameState gameState) {
+		super(gameState);
+		this.leaderName = leaderName;
+		this.leaderID = leaderID;
+	}
+
+	public String getLeaderName() {
+		return leaderName;
+	}
+
+	public void setLeaderName(String p) {
+		this.leaderName = p;
+	}
+
+	public int getLeaderID() {
+		return leaderID;
+	}
+
+	public void setLeaderID(int leaderID) {
+		this.leaderID = leaderID;
+	}
+	
+	@Override
+	public String msgContains() {
+		return leaderID + " " + leaderName;
+	}
 
 }

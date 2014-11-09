@@ -20,4 +20,8 @@ public class MsgTradeCards extends Message {
 		return cards;
 	}
 
+	@Override
+	public String msgContains() {
+		return cards.toString();
+	}
 }

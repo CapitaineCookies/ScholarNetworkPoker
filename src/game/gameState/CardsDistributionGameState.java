@@ -59,7 +59,7 @@ public class CardsDistributionGameState extends GameState {
 
     @Override
     protected void goToNextStep() {
-        for (Player p : game.getOtherplayer()) {
+        for (Player p : game.getOtherplayers()) {
             sendMsgStepDone(p.getName(), EGameState.cardsDistribution);
         }
 
@@ -77,7 +77,7 @@ public class CardsDistributionGameState extends GameState {
 
     private void makeDistribution() {
         for (int i = 0; i < Hand.nbCardPerPlayer; ++i) {
-            for (Player otherPlayer : game.getOtherplayer()) {
+            for (Player otherPlayer : game.getOtherplayers()) {
                 sendCard(otherPlayer, deck.nvlleCarte());
             }
             sendCard(game.getPlayer(), deck.nvlleCarte());

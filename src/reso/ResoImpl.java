@@ -37,7 +37,7 @@ public class ResoImpl extends UnicastRemoteObject implements Reso {
 
 	private static final long serialVersionUID = 8972046147564128682L;
 
-	private final static int MAX_DELAY_IN_SECONDS = 4;
+	private final static int MAX_DELAY_IN_SECONDS = 3;
 
 	private final AtomicInteger currentMessageId;
 	private final Map<String, Client> clients;
@@ -121,6 +121,11 @@ public class ResoImpl extends UnicastRemoteObject implements Reso {
 				}
 			}
 		}, delay, TimeUnit.MILLISECONDS);
+	}
+
+	@Override
+	public void disconnect(String clientName) {
+		clients.remove(clientName);
 	}
 
 }

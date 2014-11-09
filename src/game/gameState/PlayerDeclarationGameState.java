@@ -5,9 +5,9 @@ import java.rmi.RemoteException;
 
 import game.Game;
 
-public class DeclarePlayerGameState extends GameState {
+public class PlayerDeclarationGameState extends GameState {
 
-	public DeclarePlayerGameState(Game game) {
+	public PlayerDeclarationGameState(Game game) {
 		super(game);
 	}
 
@@ -18,18 +18,17 @@ public class DeclarePlayerGameState extends GameState {
 
 	@Override
 	public void start() {
-		System.out.println(toString() + " start");
 		game.declarePlayer();
 		goToNextStep();
 	}
 
 	@Override
 	protected void goToNextStep() {
-		game.setCurrentGameState(EGameState.getPlayers);
+		game.setCurrentGameState(EGameState.getOthers);
 	}
 
 	@Override
 	public EGameState getEGameState() {
-		return EGameState.declarePlayer;
+		return EGameState.declaration;
 	}
 }

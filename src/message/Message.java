@@ -1,25 +1,36 @@
 package message;
 
 import game.gameState.GameState.EGameState;
+
 import java.io.Serializable;
 
 public abstract class Message implements Serializable {
 
-    private static final long serialVersionUID = 880439679422242011L;
+	private static final long serialVersionUID = 880439679422242011L;
 
-    EGameState gameState;
+	EGameState gameState;
 
-    public Message(EGameState gameState) {
-        this.gameState = gameState;
-    }
+	public Message(EGameState gameState) {
+		this.gameState = gameState;
+	}
 
-    @Override
-    public String toString() {
-        return getClass().getSimpleName();
-    }
+	private String msgName() {
+		return getClass().getSimpleName();
+	}
 
-    public EGameState getGameState() {
-        return gameState;
-    }
+	@Override
+	public String toString() {
+		String msgContains = msgContains();
+		if (msgContains.isEmpty())
+			return "[" + msgName() + "]";
+		else
+			return "[" + msgName() + " : " + msgContains + "]";
+	}
+
+	public abstract String msgContains();
+
+	public EGameState getGameState() {
+		return gameState;
+	}
 
 }

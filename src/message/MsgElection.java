@@ -9,23 +9,28 @@ package message;
 import game.gameState.GameState.EGameState;
 
 /**
- *
+ * 
  * @author rgrimmer
  */
 public class MsgElection extends Message {
-    
-    private int id;
-    
-    public MsgElection(EGameState gameState, int id) {
-        super(gameState);
-        this.id = id; 
-    }
+	private static final long serialVersionUID = 596680779647428670L;
+	private int id;
 
-    public void setId(int id) {
-        this.id = id;
-    }
+	public MsgElection(int id, EGameState gameState) {
+		super(gameState);
+		this.id = id;
+	}
 
-    public int getId() {
-        return id;
-    }
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	public int getID() {
+		return id;
+	}
+
+	@Override
+	public String msgContains() {
+		return Integer.toString(id);
+	}
 }

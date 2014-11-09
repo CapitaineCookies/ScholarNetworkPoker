@@ -1,23 +1,16 @@
 package game;
 
-import java.io.Serializable;
-
 import JeuCartes.Hand;
 
-public class Player implements Serializable {
+public abstract class Player {
 
-	private static final long serialVersionUID = -2777283647638357088L;
-
-	int id;
 	String name;
-
 	private Hand hand;
 
 	public Player(String name) {
 		super();
 		this.hand = new Hand();
 		this.name = name;
-		this.id = 0;
 	}
 
 	public String getName() {
@@ -29,25 +22,22 @@ public class Player implements Serializable {
 		if (obj instanceof Player)
 			return name.equals(((Player) obj).name);
 		else if (obj instanceof String)
-			return name.equals((String)obj);
+			return name.equals((String) obj);
 		else
 			return false;
 	}
 
 	@Override
 	public String toString() {
-		return name + " " + id;
-	}
-
-	public void setID(int id) {
-		this.id = id;
-	}
-
-	public int getID() {
-		return this.id;
+		return name;
 	}
 
 	public Hand getHand() {
 		return hand;
+	}
+	
+	@Override
+	public int hashCode() {
+		return name.hashCode();
 	}
 }

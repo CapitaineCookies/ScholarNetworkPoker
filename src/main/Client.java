@@ -7,7 +7,7 @@
 package main;
 
 import game.Game;
-import game.Player;
+import game.LocalPlayer;
 
 /**
  *
@@ -24,7 +24,8 @@ public class Client {
 			t[i].start();
 		}*/
             
-            Game p = new Game(new Player("p" + (int)(Math.random() * 1000)));
+            Game p = new Game(new LocalPlayer("p" + (int)(Math.random() * 1000)));
             p.startGame();
+            System.out.println("fin du precessus client !");
 	}
 }

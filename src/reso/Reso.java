@@ -16,4 +16,6 @@ public interface Reso extends Remote {
 
     void broadcastMessage(String from, Serializable msg) throws RemoteException;
 
+	void disconnect(String clientName) throws RemoteException;
+
 }

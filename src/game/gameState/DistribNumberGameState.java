@@ -6,10 +6,15 @@ import game.Player;
 import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import message.MsgIdChoice;
-import message.MsgIdOk;
 import message.MsgStepDone;
 import message.MsgSync;
 
@@ -20,35 +25,29 @@ public class DistribNumberGameState extends GameState {
 	int nbMsgIdOk;
 	boolean alreadySentOk;
 
+	int myID;
+	Map<Player, Integer> othersID;
+
 	public DistribNumberGameState(Game game) {
 		super(game);
 
 		nbMsgSync = 0;
 		nbMsgReceived = 0;
 		alreadySentOk = false;
+		othersID = new HashMap<>();
 	}
 
-	public void sendSynchroMessage(String p) {
-		String playerName = game.getPlayer().getName();
+	public void sendSynchroMessageToOthers() {
 		try {
-			game.sendMessage(playerName, p, new MsgSync(EGameState.distribNumber));
+			game.sendMessageToOther(new MsgSync(getEGameState()));
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
 	}
 
-	public void sendIdOkMessage(String p) {
-		String playerName = game.getPlayer().getName();
+	public void sendIdMessageToOthers() {
 		try {
-			game.sendMessage(playerName, p, new MsgIdOk(EGameState.distribNumber));
-		} catch (RemoteException e) {
-			e.printStackTrace();
-		}
-	}
-
-	public void sendIdMessage(String otherPlayer) {
-		try {
-			game.sendMessage(otherPlayer, new MsgIdChoice(game.getPlayer().getID(), EGameState.distribNumber));
+			game.sendMessageToOther(new MsgIdChoice(myID, getEGameState()));
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
@@ -56,93 +55,136 @@ public class DistribNumberGameState extends GameState {
 
 	@Override
 	public void start() {
-		int taille = game.getOtherplayer().size() + 1;
+		int taille = game.getOtherplayers().size() + 1;
 		int id = (int) (Math.random() * taille);
 
-		game.getPlayer().setID(id);
+		myID = id;
 
-//		game.sendMessageToOther(messsage);
-		for (Player p : game.getOtherplayer()) {
-			sendIdMessage(p.getName());
-		}
+		// Send id of player
+		sendIdMessageToOthers();
 
 		waitStepDone();
 		goToNextStep();
 	}
 
+	public void setNextPlayer() {
+		Player maxPlayer = getMaxPlayer();
+		Player nextPlayer = maxPlayer;
+
+		if (maxPlayer == game.getPlayer()) {
+			nextPlayer = getMinPlayer();
+		} else {
+			for (Entry<Player, Integer> currentPlayer : othersID.entrySet()) {
+				if (currentPlayer.getValue() < getID(nextPlayer) && currentPlayer.getValue() > getID(game.getPlayer())) {
+					nextPlayer = currentPlayer.getKey();
+				}
+			}
+		}
+		game.getPlayer().setNextPlayer(nextPlayer);
+	}
+
+	public void setPreviousPlayer() {
+		Player minPlayer = getMinPlayer();
+		Player previouslayer = minPlayer;
+
+		if (minPlayer == game.getPlayer()) {
+			previouslayer = getMaxPlayer();
+		} else {
+			for (Entry<Player, Integer> currentPlayer : othersID.entrySet()) {
+				if (currentPlayer.getValue() < getID(previouslayer) && currentPlayer.getValue() > getID(game.getPlayer())) {
+					previouslayer = currentPlayer.getKey();
+				}
+			}
+		}
+		game.getPlayer().setPreviousPlayer(previouslayer);
+	}
+
+	private Player getMinPlayer() {
+		Player player = game.getPlayer();
+		Entry<Player, Integer> minP = Collections.min(othersID.entrySet(), new CompareEntry());
+		int compareMinP = minP.getValue().compareTo(getID(player));
+		return (compareMinP < 0) ? minP.getKey() : player;
+	}
+
+	private Player getMaxPlayer() {
+		Player player = game.getPlayer();
+		Entry<Player, Integer> maxP = Collections.max(othersID.entrySet(), new CompareEntry());
+		int compareMaxP = maxP.getValue().compareTo(getID(player));
+		if (compareMaxP == 0)
+			throw new RuntimeException();
+		return (compareMaxP > 0) ? maxP.getKey() : player;
+	}
+
 	@Override
 	protected void goToNextStep() {
-		
-		sendMsgStepDoneToOther(EGameState.distribNumber);
+
+		// Set player id
+		game.getPlayer().setID(myID);
+
+		// Set next & previous player
+		setNextPlayer();
+		setPreviousPlayer();
+
+		sendMsgStepDoneToOther(getEGameState());
 		waitOtherPlayersDone();
-		
-		System.out.println("goToNextStep");
-		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" + game.getPlayer() + " : " + game.getOtherplayer());
 		game.setCurrentGameState(EGameState.election);
+
+		System.out.println("goToNextStep");
+		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" + game.getPlayer() + " : " + game.getOtherplayers());
 	}
 
 	@Override
 	public synchronized void receiveMessage(String from, Serializable msg) throws RemoteException {
-		if (game.getCurrentGameState() instanceof ElectionGameState) {
-                    ignoredMessage(from, msg);
-                    return;
+		// !!! TODO warning danger !
+		// System.out.println("yolo");
+		if (game.getCurrentGameState() instanceof PlayerElectionGameState) {
+			ignoredMessage(from, msg);
+			return;
 		}
+		// System.out.println("yolo2");
 
 		if (msg instanceof MsgIdChoice) {
+			// System.out.println("in idchoice");
 
 			MsgIdChoice msgIdChoice = (MsgIdChoice) msg;
 
-			for (Player p : game.getOtherplayer()) {
-				if (p.getName().equals(from)) {
-					p.setID(msgIdChoice.getId());
+			// System.out.println("in idchoice2" + from);
+			// Set "id" to "from"
+			othersID.put(game.getPlayer(from), msgIdChoice.getId());
+
+			// System.out.println("in idchoice3");
+			++nbMsgReceived;
+
+			if (nbMsgReceived == game.getOtherplayers().size()) {
+				System.out.println("[" + game.getPlayer().getName() + "]" + msg.toString() + "[Done]" + myID + " " + othersID);
+
+				// Check the ids
+				if (allDifferentID()) {
+					System.out.println("all different : " + myID + " " + othersID);
+					notifyStepDone();
+				} else {
+					if (!isDifferentID(game.getPlayer(), new ArrayList<Player>(game.getOtherplayers()))) {
+						System.out.println("!isDifferent" + myID + " " + othersID);
+						myID = chooseValidID();
+						System.out.println("[" + game.getPlayer().getName() + "] has a new ID : " + myID + " : " + othersID);
+					}
+					nbMsgReceived = 0;
+					sendSynchroMessageToOthers();
+
 				}
-			}
 
-			nbMsgReceived++;
-
-			if (nbMsgReceived == game.getOtherplayer().size()) {
-				for (Player p : game.getOtherplayer()) {
-					sendSynchroMessage(p.getName());
-				}
-
-				nbMsgReceived = 0;
+			} else {
+				System.out.println("[" + game.getPlayer().getName() + "]" + msg.toString() + " : " + nbMsgReceived + "/"
+						+ game.getOtherplayers().size());
 			}
 		} else if (msg instanceof MsgSync) {
 			nbMsgSync++;
-			System.out.println(game.getPlayer().getName() + "msgIdSync : " + nbMsgSync + "/" + game.getOtherplayer().size());
+			System.out.println(game.getPlayer().getName() + msg +  " "+  nbMsgSync + "/" + game.getOtherplayers().size());
 
-			if (nbMsgSync == game.getOtherplayer().size()) {
-
-				if (isDifferent(game.getPlayer(), game.getOtherplayer())) {
-
-					if (!alreadySentOk) {
-						for (Player p : game.getOtherplayer()) {
-							sendIdOkMessage(p.getName());
-						}
-
-						alreadySentOk = true;
-					}
-					for (Player p : game.getOtherplayer()) {
-						sendIdMessage(p.getName());
-					}
-
-				} else {
-					int newId = chooseValidId();
-					game.getPlayer().setID(newId);
-					System.out.println(game.getPlayer().getName() + " has a new ID : " + game.getPlayer().getID());
-					for (Player p : game.getOtherplayer()) {
-						sendIdMessage(p.getName());
-					}
-				}
-
+			if (nbMsgSync == game.getOtherplayers().size()) {
 				nbMsgSync = 0;
-			}
-		} else if (msg instanceof MsgIdOk) {
-			nbMsgIdOk++;
-			System.out.println(game.getPlayer().getName() + "msgIdOk : " + nbMsgIdOk + "/" + game.getOtherplayer().size());
-			if (nbMsgIdOk == game.getOtherplayer().size()) {
-				System.out.println(">>>>>>>>>>>>>>>>>>< NOTIFY STEP DONE DISTRIB NUMBER");
-				notifyStepDone();
+				sendIdMessageToOthers();
+
 			}
 		} else if (msg instanceof MsgStepDone) {
 			super.receiveStepDone(from);
@@ -152,56 +194,87 @@ public class DistribNumberGameState extends GameState {
 
 	}
 
-	public boolean isDifferent(Player p, List<Player> l) {
+	private boolean allDifferentID() {
+		List<Player> players = new ArrayList<>(game.getOtherplayers().size() + 1); // contient la liste de tous
 
-		for (int i = 0; i < l.size(); ++i) {
-			if (!p.getName().equals(l.get(i).getName())) {
-				if (p.getID() == l.get(i).getID()) {
-					return false;
-				}
-			}
+		players.add(game.getPlayer());
+		players.addAll(game.getOtherplayers());
+		for (Player p : players)
+			if (!isDifferentID(p, players))
+				return false;
+		return true;
+	}
+
+	public boolean isDifferentID(Player p, Collection<Player> l) {
+
+		int idP = getID(p);
+		for (Player p2 : l) {
+			if (getID(p2) == idP && !p.equals(p2))
+				return false;
 		}
 
 		return true;
 	}
 
-	public int chooseValidId() {
+	private int getID(Player p) {
+		Integer i = othersID.get(p);
+		if (i != null)
+			return i;
+		else if (p.equals(game.getPlayer()))
+			return myID;
+		throw new RuntimeException("Player unexist !");
+	}
 
-		List<Player> players = new ArrayList<>(); // contient la liste de tous
-													// les joueurs
+	public int chooseValidID() {
+		// System.out.println("test1");
+		List<Player> players = new ArrayList<>(game.getOtherplayers().size() + 1); // contient la liste de tous
+		// les joueurs
 		List<Integer> idsNotToChoose = new ArrayList<>(); // contient la liste
 															// des id à ne pas
-															// choisir
+															// System.out.println("test2");
+		// choisir
 		List<Integer> idsToChoose = new ArrayList<>(); // contient la liste des
 														// ids à choisir
-
+														// System.out.println("test3");
 		players.add(game.getPlayer());
-		for (Player p : game.getOtherplayer()) {
-			players.add(p);
-		}
+		players.addAll(game.getOtherplayers());
 
-		for (int i = 0; i < game.getOtherplayer().size() + 1; ++i) {
+		// System.out.println("test4");
+		for (int i = 0; i < game.getOtherplayers().size() + 1; ++i) {
 			idsToChoose.add(i);
 		}
 
+		// System.out.println(idsToChoose);
+		// System.out.println("test5");
 		for (int i = 0; i < players.size(); ++i) {
-			if (isDifferent(players.get(i), players)) {
-				idsNotToChoose.add(players.get(i).getID());
+			if (isDifferentID(players.get(i), players)) {
+				// If is unique ID, let him is id. It's a good id
+				idsNotToChoose.add(getID(players.get(i)));
 			}
 		}
 
-		for (int i = 0; i < players.size(); ++i) {
-			if ((idsNotToChoose.contains(players.get(i).getID()))) {
-				idsToChoose.remove((Integer) (players.get(i).getID()));
-			}
-		}
-
+		System.out.println(othersID);
+		System.out.println(idsToChoose);
+		System.out.println(idsNotToChoose);
+		// System.out.println("test6");
+		idsToChoose.removeAll(idsNotToChoose);
+		// System.out.println("test7");
+		// System.out.println(players);
+		// System.out.println(idsNotToChoose);
 		int index = (int) (Math.random() * idsToChoose.size());
+		// System.out.println("test8");
 		return idsToChoose.get(index);
 	}
 
 	@Override
 	public EGameState getEGameState() {
 		return EGameState.distribNumber;
+	}
+
+	class CompareEntry implements Comparator<Entry<Player, Integer>> {
+		@Override
+		public int compare(Entry<Player, Integer> o1, Entry<Player, Integer> o2) {
+			return (o1.getValue().compareTo(o2.getValue()));
+		}
 	}
 }

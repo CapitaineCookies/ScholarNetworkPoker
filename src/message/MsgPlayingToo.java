@@ -9,13 +9,19 @@ package message;
 import game.gameState.GameState.EGameState;
 
 /**
- *
+ * 
  * @author rgrimmer
  */
 public class MsgPlayingToo extends Message {
 
-    public MsgPlayingToo(EGameState eGameState) {
-        super(eGameState);
-    }
-    
+	private static final long serialVersionUID = -8881890658503260381L;
+
+	public MsgPlayingToo(EGameState eGameState) {
+		super(eGameState);
+	}
+
+	@Override
+	public String msgContains() {
+		return "";
+	}
 }

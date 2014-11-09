@@ -17,4 +17,9 @@ public class MsgCard extends Message {
 		return card;
 	}
 
+	@Override
+	public String msgContains() {
+		return card.toString();
+	}
+
 }

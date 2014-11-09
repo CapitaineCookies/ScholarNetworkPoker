@@ -10,4 +10,9 @@ public class MsgObtainCriticalSection extends Message {
 		super(gameState);
 	}
 
+	@Override
+	public String msgContains() {
+		return "";
+	}
+
 }

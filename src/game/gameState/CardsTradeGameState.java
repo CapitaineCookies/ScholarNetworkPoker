@@ -101,19 +101,14 @@ public class CardsTradeGameState extends GameState {
 			System.out.println("[" + getPlayerName() + "][" + getEGameState() + "] trade [" + i + '/' + nbExchange
 					+ ']');
 			getCriticalSection();
-			System.out.println("get criticalSection");
 			waitCriticalSection();
-			System.out.println("wait criticalSection");
 
 			int nbCardsTrade = (int) Math.random() * 5 + 1;
 			sendTardeCards(game.getPlayer().getHand().getRandomCards(nbCardsTrade));
 
-			System.out.println("send cardReception");
 			waitCardsReception(nbCardsTrade);
 
-			System.out.println("wait cardReception");
 			releaseCriticalSection();
-			System.out.println("release criticalSection");
 
 		}
 		System.out.println("[" + getPlayerName() + "][" + getEGameState() + "] trade [Done]");
@@ -167,7 +162,7 @@ public class CardsTradeGameState extends GameState {
 	protected void goToNextStep() {
 		System.out.println("New Cards : " + game.getPlayer().getHand());
 		if (criticalSectionSender != null)
-			criticalSectionSender.stop();
+			criticalSectionSender.interrupt();
 		game.setCurrentGameState(EGameState.cardsShow);
 
 	}
@@ -245,7 +240,7 @@ public class CardsTradeGameState extends GameState {
 		@Override
 		public void run() {
 			super.run();
-			while (true) {
+			while (!interrupted()) {
 				try {
 					waitQueueEvent();
 				} catch (InterruptedException e) {

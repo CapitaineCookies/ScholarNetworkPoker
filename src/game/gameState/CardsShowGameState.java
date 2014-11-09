@@ -5,10 +5,12 @@ import game.Game;
 import java.io.Serializable;
 import java.rmi.RemoteException;
 
-import message.MsgCard;
+import JeuCartes.Hand;
+import message.MsgCardWithNextPlayer;
 
 public class CardsShowGameState extends GameState {
 
+	int countCard;
 	public CardsShowGameState(Game game) {
 		super(game);
 	}
@@ -18,25 +20,28 @@ public class CardsShowGameState extends GameState {
 	}
 
 	@Override
-	public void receiveMessage(String from, Serializable msg) throws RemoteException {
-		if (msg instanceof MsgCard)
-			receiveMsgCard(from, (MsgCard) msg);
+	public synchronized void receiveMessage(String from, Serializable msg) throws RemoteException {
+		if (msg instanceof MsgCardWithNextPlayer)
+			receiveMsgCard(from, (MsgCardWithNextPlayer) msg);
 		else
 			ignoredMessage(from, msg);
 	}
 
-	private void receiveMsgCard(String from, MsgCard msg) {
-		game.getPlayer(from);
-		if (from.equals(game.getPreviousPlayer()) && !game.getPlayer().getHand().isEmpty())
+	private synchronized void receiveMsgCard(String from, MsgCardWithNextPlayer msg) {
+		// TODO synchronized
+		countCard ++;
+		if(countCard == Hand.nbCardPerPlayer * (game.getOtherplayers().size() + 1))
+			notifyStepDone();
+		else if(game.getPlayer().equals(msg.getNextPlayer()))
 			sendNextShowCard();
 	}
 
 	@Override
 	public void start() {
+		countCard = 0;
 		showCards();
 		waitStepDone();
-		waitOtherPlayersDone();
-
+		goToNextStep();
 	}
 
 	private void showCards() {
@@ -46,7 +51,7 @@ public class CardsShowGameState extends GameState {
 
 	private void sendNextShowCard() {
 		try {
-			game.sendMessageToOther(new MsgCard(game.getPlayer().getHand().pollRandomCard(), getEGameState()));
+			game.broadcastMessage(new MsgCardWithNextPlayer(game.getPlayer().getHand().pollRandomCard(), game.getNextPlayer().getName(), getEGameState()));
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
@@ -54,8 +59,7 @@ public class CardsShowGameState extends GameState {
 
 	@Override
 	protected void goToNextStep() {
-		// TODO Auto-generated method stub
-
+		game.setCurrentGameState(EGameState.exit);
 	}
 
 	@Override

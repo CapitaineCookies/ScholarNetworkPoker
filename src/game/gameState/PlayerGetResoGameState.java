@@ -8,15 +8,14 @@ import java.rmi.RemoteException;
 
 import reso.Reso;
 
-public class GetResoGameState extends GameState {
+public class PlayerGetResoGameState extends GameState {
 
-	public GetResoGameState(Game game) {
+	public PlayerGetResoGameState(Game game) {
 		super(game);
 	}
 
 	@Override
 	public void start() {
-		System.out.println(toString() + " start");
 		setReso();
 		goToNextStep();
 	}
@@ -33,7 +32,7 @@ public class GetResoGameState extends GameState {
 
 	@Override
 	protected void goToNextStep() {
-		game.setCurrentGameState(EGameState.declarePlayer);
+		game.setCurrentGameState(EGameState.declaration);
 	}
 
 	@Override
