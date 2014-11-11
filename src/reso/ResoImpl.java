@@ -3,10 +3,10 @@ package reso;
 import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -55,7 +55,7 @@ public class ResoImpl extends UnicastRemoteObject implements Reso {
 	@Override
 	public void declareClient(String name, Client client) throws RemoteException {
 		clients.put(name, client);
-		return;
+		System.out.println("[RESO] new client declared : " + name);
 	}
 
 	@Override
@@ -66,7 +66,7 @@ public class ResoImpl extends UnicastRemoteObject implements Reso {
 		synchronized (random) {
 			delay = (int) (random.nextDouble() * MAX_DELAY_IN_SECONDS * 1000);
 		}
-		System.out.println("[RESO] " + msg + " arrived (delay: " + delay + "ms)");
+		System.out.println("[RESO][Send] " + msg + "(delay: " + delay + "ms) : " + msg.content);
 
 		scheduler.schedule(new Runnable() {
 			@Override
@@ -79,7 +79,7 @@ public class ResoImpl extends UnicastRemoteObject implements Reso {
 				}
 
 				try {
-					System.out.println("[RESO] " + msg + " transmitted");
+					System.out.println("[RESO][Recv] " + msg + " transmitted");
 					client.receiveMessage(msg.from, msg.content);
 				} catch (RemoteException e) {
 					System.err.println("[RESO] error while sending " + msg);
@@ -97,23 +97,23 @@ public class ResoImpl extends UnicastRemoteObject implements Reso {
 		synchronized (random) {
 			delay = (int) (random.nextDouble() * MAX_DELAY_IN_SECONDS * 1000);
 		}
-		System.out.println("[RESO] " + msg + " arrived (delay: " + delay + "ms)");
+		System.out.println("[RESO][Brod] message(" + msg.id + ") from " + msg.from + " to " + clients.keySet() + " (delay: " + delay + "ms)" + msg.content);
 
 		scheduler.schedule(new Runnable() {
 			@Override
 			public void run() {
 
-				Collection<Client> clientList = clients.values();
-				for (Client client : clientList) {
+//				Collection<Client> clientList = clients.values();
+				for (Entry<String, Client> client : clients.entrySet()) {
 
-					if (client == null) {
+					if (client == null || client.getKey().isEmpty() || client.getValue() == null) {
 						System.err.println("[RESO] error, unknown client id: " + msg.to);
 						return;
 					}
 
 					try {
-						System.out.println("[RESO] " + msg + " transmitted");
-						client.receiveMessage(msg.from, msg.content);
+						System.out.println("[RESO][Recv] message(" + msg.id + ") from " + msg.from + " to " + client.getKey() + " transmitted  : " + msg.content);
+						client.getValue().receiveMessage(msg.from, msg.content);
 					} catch (RemoteException e) {
 						System.err.println("[RESO] error while sending " + msg);
 						e.printStackTrace();
@@ -126,6 +126,7 @@ public class ResoImpl extends UnicastRemoteObject implements Reso {
 	@Override
 	public void disconnect(String clientName) {
 		clients.remove(clientName);
+		System.out.println(clientName + " disconnect");
 	}
 
 }

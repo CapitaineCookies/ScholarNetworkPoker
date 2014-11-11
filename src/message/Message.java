@@ -8,14 +8,19 @@ public abstract class Message implements Serializable {
 
 	private static final long serialVersionUID = 880439679422242011L;
 
-	EGameState gameState;
-
-	public Message(EGameState gameState) {
-		this.gameState = gameState;
+	String from = null;
+	EGameState senderGameState = null;
+	
+	public String getFrom() {
+		return from;
 	}
 
-	private String msgName() {
-		return getClass().getSimpleName();
+	public void setSenderGameState(EGameState senderGameState) {
+		this.senderGameState = senderGameState;
+	}
+	
+	public EGameState getSenderGameState() {
+		return senderGameState;
 	}
 
 	@Override
@@ -29,8 +34,15 @@ public abstract class Message implements Serializable {
 
 	public abstract String msgContains();
 
-	public EGameState getGameState() {
-		return gameState;
+
+	private String msgName() {
+		return getClass().getSimpleName();
 	}
 
+	public abstract void accept(MessageVisitor visitor);
+
+	
+	public void setFrom(String from) {
+		this.from = from;
+	}
 }

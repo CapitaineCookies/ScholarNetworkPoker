@@ -1,12 +1,4 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package message;
-
-import game.gameState.GameState.EGameState;
 
 /**
  * 
@@ -16,8 +8,7 @@ public class MsgElection extends Message {
 	private static final long serialVersionUID = 596680779647428670L;
 	private int id;
 
-	public MsgElection(int id, EGameState gameState) {
-		super(gameState);
+	public MsgElection(int id) {
 		this.id = id;
 	}
 
@@ -32,5 +23,10 @@ public class MsgElection extends Message {
 	@Override
 	public String msgContains() {
 		return Integer.toString(id);
+	}
+
+	@Override
+	public void accept(MessageVisitor visitor) {
+		visitor.receive(this);
 	}
 }

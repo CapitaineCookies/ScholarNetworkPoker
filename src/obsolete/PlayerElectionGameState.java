@@ -1,7 +1,9 @@
-package game.gameState;
+package obsolete;
 
 import game.Game;
 import game.Player;
+import game.gameState.GameState;
+import game.gameState.GameState.EGameState;
 
 import java.io.Serializable;
 import java.rmi.RemoteException;
@@ -44,14 +46,14 @@ public class PlayerElectionGameState extends GameState {
 		if (msg instanceof MsgElection) {
 			MsgElection msgElection = (MsgElection) msg;
 
-			if (msgElection.getID() > game.getPlayer().getID()) {
+			if (msgElection.getID() > localPlayer.getID()) {
 				sendMessageElection(msgElection.getID(), game.getNextPlayer().getName());
-			} else if (msgElection.getID() == game.getPlayer().getID()) {
-				System.out.println(game.getPlayer().getName() + " leader = " + game.getPlayer().getName());
-				sendMessageLeader(getPlayerName(), game.getPlayer().getID(), game.getNextPlayer().getName());
-				game.setLeader(game.getPlayer());
+			} else if (msgElection.getID() == localPlayer.getID()) {
+				System.out.println(localPlayer.getName() + " leader = " + localPlayer.getName());
+				sendMessageLeader(getPlayerName(), localPlayer.getID(), game.getNextPlayer().getName());
+				game.setLeader(localPlayer);
 				notifyStepDone();
-			} else if (msgElection.getID() < game.getPlayer().getID() && !participant) {
+			} else if (msgElection.getID() < localPlayer.getID() && !participant) {
 				participant = true;
 			}
 
@@ -59,10 +61,10 @@ public class PlayerElectionGameState extends GameState {
 			MsgLeader msgLeader = (MsgLeader) msg;
 			game.setLeader(game.getPlayer(msgLeader.getLeaderName()));
 
-			if (game.getPlayer().getID() != msgLeader.getLeaderID()) {
+			if (localPlayer.getID() != msgLeader.getLeaderID()) {
 				game.setLeader(game.getPlayer(msgLeader.getLeaderName()));
 				sendMessageLeader(msgLeader.getLeaderName(), msgLeader.getLeaderID(), game.getNextPlayer().getName());
-				System.out.println(game.getPlayer().getName() + " leader = " + msgLeader.getLeaderName());
+				System.out.println(localPlayer.getName() + " leader = " + msgLeader.getLeaderName());
 				notifyStepDone();
 			}
 		} else if (msg instanceof MsgStepDone) {
@@ -76,7 +78,7 @@ public class PlayerElectionGameState extends GameState {
 	public void start() {
 
 		participant = true;
-		sendMessageElection(game.getPlayer().getID(), game.getNextPlayer().getName());
+		sendMessageElection(localPlayer.getID(), game.getNextPlayer().getName());
 
 		waitStepDone();
 		goToNextStep();

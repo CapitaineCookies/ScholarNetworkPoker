@@ -1,12 +1,4 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package message;
-
-import game.gameState.GameState.EGameState;
 
 /**
  * 
@@ -19,8 +11,7 @@ public class MsgLeader extends Message {
 	private String leaderName;
 	private int leaderID;
 
-	public MsgLeader(String leaderName, int leaderID, EGameState gameState) {
-		super(gameState);
+	public MsgLeader(String leaderName, int leaderID) {
 		this.leaderName = leaderName;
 		this.leaderID = leaderID;
 	}
@@ -40,7 +31,12 @@ public class MsgLeader extends Message {
 	public void setLeaderID(int leaderID) {
 		this.leaderID = leaderID;
 	}
-	
+
+	@Override
+	public void accept(MessageVisitor visitor) {
+		visitor.receive(this);
+	}
+
 	@Override
 	public String msgContains() {
 		return leaderID + " " + leaderName;

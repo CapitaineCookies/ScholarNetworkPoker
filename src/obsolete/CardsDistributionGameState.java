@@ -1,7 +1,9 @@
-package game.gameState;
+package obsolete;
 
 import game.Game;
 import game.Player;
+import game.gameState.GameState;
+import game.gameState.GameState.EGameState;
 
 import java.io.Serializable;
 import java.rmi.RemoteException;

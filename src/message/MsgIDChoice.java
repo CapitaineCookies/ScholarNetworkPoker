@@ -1,19 +1,16 @@
 package message;
 
-import game.gameState.GameState.EGameState;
-
-public class MsgIdChoice extends Message {
+public class MsgIDChoice extends Message {
 
 	private static final long serialVersionUID = -4075650665976010262L;
 
 	int id;
 
-	public MsgIdChoice(int id, EGameState gameState) {
-		super(gameState);
+	public MsgIDChoice(int id) {
 		this.id = id;
 	}
 
-	public int getId() {
+	public int getID() {
 		return id;
 	}
 
@@ -24,5 +21,10 @@ public class MsgIdChoice extends Message {
 	@Override
 	public String msgContains() {
 		return Integer.toString(id);
+	}
+
+	@Override
+	public void accept(MessageVisitor visitor) {
+		visitor.receive(this);
 	}
 }

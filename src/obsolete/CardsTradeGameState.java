@@ -1,4 +1,4 @@
-package game.gameState;
+package obsolete;
 
 import game.Game;
 
@@ -226,6 +226,8 @@ public class CardsTradeGameState extends GameState {
 		private Game gameThread;
 		private Queue<String> queueThread;
 		private Semaphore criticalSectionLocker;
+		
+		// TODO Use a BlockingQueue
 
 		public CriticalSectionSenderThread(Game game, Queue<String> queue) {
 			this.gameThread = game;

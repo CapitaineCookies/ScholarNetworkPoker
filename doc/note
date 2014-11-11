@@ -2,4 +2,7 @@ Verifier le waitStepDone
 Comment marche notify ? Est-il bloquant ? Sinon tuiliser un boolean pour savoir si l'Ã©tape est dÃ©ja done avant de ce mettre en attente
 [CardsTrade] problème : file d'attente non créer lors de l'ajout d'un élément dans celle-ci
 
+ditribNumber, problemee : réception des ids des joueurs avant d'avoir générer le miens !
+
+
 algo election : http://www.cs.rug.nl/~eirini/DS_slides/leader_election.pdf

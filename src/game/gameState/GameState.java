@@ -1,129 +1,304 @@
 package game.gameState;
 
-import game.Game;
+import game.LocalPlayer;
+import game.OtherPlayers;
 import game.Player;
+import game.RemotePlayer;
 
-import java.io.Serializable;
 import java.rmi.RemoteException;
-import java.util.List;
-import java.util.Vector;
+import java.util.Collection;
+import java.util.concurrent.Semaphore;
 
-import message.MsgStepDone;
+import message.Message;
+import message.MessageVisitor;
+import message.MsgPostSynch;
+import message.MsgPreSynch;
+import reso.Client;
+import reso.Reso;
 
-public abstract class GameState {
+public abstract class GameState implements MessageVisitor {
 
 	public enum EGameState {
 
-		getReso, declaration, getOthers, distribNumber, election, cardsDistribution, cardsShow, cardsTrade, exit;
-		
+		A_getReso, B_declaration, C_getOthers, D_distribNumber, E_election, F_cardsDistribution, G_cardsTrade, H_cardsShow, Z_exit;
+
 		@Override
 		public String toString() {
-			char firstChar = super.toString().charAt(0);
-			return Character.toUpperCase(firstChar) + super.toString().substring(1);
+			char firstChar = super.toString().charAt(2);
+			return Character.toUpperCase(firstChar) + super.toString().substring(3);
 		}
+	}
+
+//	protected int nbMsgSyncState;
+//	protected Object stepOtherPlayersDone;
+//	// protected Game game;
+//	protected List<Player> playersReady;
+
+	protected Semaphore preLock;
+	protected Semaphore postLock;
+	protected Semaphore stepDone;
+
+	protected final Reso reso;
+	protected final LocalPlayer localPlayer;
+	protected final OtherPlayers otherPlayers;
+	protected final Player leader;
+	public GameState(Reso reso, LocalPlayer localPlayer, OtherPlayers otherPlayers) {
+		this(reso, localPlayer, otherPlayers, null);
 	}
 	
-	protected int nbMsgSyncState;
-	protected Object stepDone;
-	protected Object stepOtherPlayersDone;
-	protected Game game;
-	protected List<Player> playersReady;
+	public GameState(Reso reso, LocalPlayer localPlayer, OtherPlayers otherPlayers, Player leader) {
+		// this.playersReady = new Vector<>();
+		// this.game = game;
+		// nbMessageStepDone = 0;
+		this.reso = reso;
+		this.localPlayer = localPlayer;
+		this.otherPlayers = otherPlayers;
+		this.leader = leader;
 
-	private int nbMessageStepDone;
-
-	public GameState(Game game) {
-		this.stepDone = new Object();
-		this.game = game;
-		this.playersReady = new Vector<>();
-		nbMessageStepDone = 0;
+		this.preLock = new Semaphore(0);
+		this.postLock = new Semaphore(0);
+		this.stepDone = new Semaphore(0);
 	}
 
-	public abstract void receiveMessage(String from, Serializable msg) throws RemoteException;
+	public void start() {
+		preExecute();
 
-	protected void ignoredMessage(String from, Serializable msg) {
-		System.out.println("Message from " + from + " ignored");
+		if (makePostPreExecuteSynchro()) {
+			sendPostPreExecuteSynchro();
+			waitPostPreSynchro();
+		}
+		
+		execute();
+		waitStepDone();
+		
+		if (makePrePostExecuteSynchro()) {
+			sendPrePostExecuteSynchro();
+			waitPrePostExecuteSynchro();
+		}
+		postExecute();
 	}
 
-	protected String getPlayerName() {
-		return game.getPlayer().getName();
+	public void log(String logMessage) {
+		System.out.println("[" + localPlayer.getName() + "][" + getGameState() + "]" + logMessage);
 	}
 
-	protected void sendMsgStepDoneToOther(EGameState gameState) {
+	// ///////////////////////
+	// Protocol
+	// ///////////////////////
+
+	/**
+	 * Use of initializations. Use with preExecuteSynchro for more secure
+	 * 
+	 */
+	protected void preExecute() {
+		// By default, do nothing
+	}
+
+	/**
+	 * Override if a synchronization is needed between preExecute and execute
+	 * 
+	 * @return true for synchronization
+	 */
+	protected boolean makePostPreExecuteSynchro() {
+		return false;
+	}
+
+	private void sendPostPreExecuteSynchro() {
+		sendToOthers(new MsgPostSynch());
+	}
+
+	private void waitPostPreSynchro() {
+
+		if (otherPlayers == null)
+			throw new RuntimeException("otherPlayers unset can't fix number of expected message");
+
 		try {
-			game.sendMessageToOther(new MsgStepDone(gameState));			
+			preLock = new Semaphore(0);
+			log("[WaitPreSynch] expected " + otherPlayers.size() + " message");
+			postLock.acquire(otherPlayers.size());
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	/**
+	 * Put here the Main execution of the gameState
+	 */
+	protected abstract void execute();
+
+	/**
+	 * Override if a synchronization is needed between preExecute and execute
+	 * 
+	 * @return true for synchronization
+	 */
+	protected boolean makePrePostExecuteSynchro() {
+		return false;
+	}
+
+	private void sendPrePostExecuteSynchro() {
+		sendToOthers(new MsgPostSynch());
+	}
+
+	private void waitPrePostExecuteSynchro() {
+
+		if (otherPlayers == null)
+			throw new RuntimeException("otherPlayers unset can't fix number of expected message");
+
+		try {
+			log("[WaitPostSynch] expected " + otherPlayers.size() + " message");
+			postLock.acquire(otherPlayers.size());
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * Call after calls exectue() AND notifyDone()
+	 * Use of initializations. Use with postExecuteSynchro for more secure
+	 * 
+	 */
+	protected void postExecute() {
+		// By default, do nothing
+	}
+	
+	@Override
+	public void receive(MsgPreSynch message) {
+		preLock.release();
+	}
+	
+	@Override
+	public void receive(MsgPostSynch message) {
+		postLock.release();
+	}
+	
+	/**
+	 * 
+	 * @return The enum for this gameState
+	 */
+	public abstract EGameState getGameState();
+
+	/**
+	 * 
+	 * @return The enum of the next gameState
+	 */
+	public abstract EGameState getNextState();
+
+	// /////////////////
+	// Reso
+	// /////////////////
+
+	public void send(String to, Message message) {
+		log("[send]  to  [" + to + "]" + message);
+		message.setSenderGameState(getGameState());
+		try {
+			reso.sendMessage(localPlayer.getName(), to, message);
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
 	}
 
-	protected void sendMsgStepDone(String to, EGameState gameState) {
-		String playerName = game.getPlayer().getName();
+	public void send(Player to, Message msg) {
+		send(to.getName(), msg);
+	}
+
+	public void sendToOthers(Message msg) {
+		for (Player player : otherPlayers.getPlayers())
+			send(player, msg);
+	}
+
+	public void broadcast(Message message) {
+		message.setSenderGameState(getGameState());
+		log("[Broadcast] " + message);
 		try {
-			game.sendMessage(playerName, to, new MsgStepDone(gameState));
+			reso.broadcastMessage(localPlayer.getName(), message);
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
 	}
+
+//	public void setReso(Reso reso) {
+//		this.reso = reso;
+//	}
+
+	public void declarePlayer(Client client) {
+		try {
+			reso.declareClient(localPlayer.getName(), client);
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void disconnectPlayer() {
+		try {
+			reso.disconnect(localPlayer.getName());
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		}
+	}
+
+	// /////////////////
+	// Players
+	// /////////////////
+	
+//	public void setLeader(Player leader) {
+//		this.leader = leader;
+//	}
+	
+	public boolean isLeader() {
+		System.out.println("leader : " + leader);
+		System.out.println("player : " + localPlayer);
+		return leader.equals(localPlayer);
+	}
+
+	public void setOtherPlayer(Collection<RemotePlayer> otherPlayers) {
+		this.otherPlayers.addAll(otherPlayers);
+	}
+
+	public Player getFrom(Message message) {
+		return getPlayer(message.getFrom());
+	}
+
+	public boolean comeFromLocalPlayer(Message message) {
+		return message.getFrom().equals(localPlayer.getName());
+	}
+
+	private Player getPlayer(String name) {
+		if (localPlayer.getName().equals(name))
+			return localPlayer;
+		Player needed = otherPlayers.getPlayer(name);
+		if (needed != null)
+			return needed;
+		throw new RuntimeException("player : " + name + " unexist !");
+	}
+
+	// /////////////////
+	// // Synchronized
+	// /////////////////
 
 	protected void notifyStepDone() {
-		synchronized (stepDone) {
-			stepDone.notify();
+		stepDone.release();
+	}
 
+	private void waitStepDone() {
+		try {
+			stepDone.acquire();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
 	}
 
-	protected void notifyOtherPlayersDone() {
-		synchronized (stepOtherPlayersDone) {
-			stepOtherPlayersDone.notify();
+	// /////////////////
+	// // Tools
+	// /////////////////
 
-		}
+	protected void ignoreMessage(Message message) {
+		log(">>[Ignored] from [" + message.getFrom() + "]" + message);
 	}
-
-	protected void waitStepDone() {
-		synchronized (stepDone) {
-			try {
-				stepDone.wait();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
-	}
-
-	protected synchronized void receiveStepDone(String from) {
-		nbMessageStepDone++;
-		System.out.println("nbMessageStepDone=" + nbMessageStepDone + "/" + game.getOtherplayers().size());
-		if (nbMessageStepDone == game.getOtherplayers().size()) {
-			notifyOtherPlayersDone();
-			System.out.println("Is notify");
-		}
-
-	}
-
-	protected void waitOtherPlayersDone() {
-		while (nbMessageStepDone < game.getOtherplayers().size()) {
-			@SuppressWarnings("unused")
-			int i = 0;
-		}
-
-		// if(nbMessageStepDone < game.getOtherplayer().size()) {
-		// synchronized (stepOtherPlayersDone) {
-		// try {
-		// stepOtherPlayersDone.wait();
-		// } catch (InterruptedException e) {
-		// e.printStackTrace();
-		// }
-		// }
-		// }
-	}
-
-	public abstract void start();
-
-	protected abstract void goToNextStep();
-
+	
 	public String toString() {
 		String name = getClass().getSimpleName().replace("GameState", "");
-		return Character.toUpperCase(name.charAt(0)) + name.substring(1);
+		return name.substring(2);
 	}
 
-	public abstract EGameState getEGameState();
 }

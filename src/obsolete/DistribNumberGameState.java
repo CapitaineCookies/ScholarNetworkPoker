@@ -1,4 +1,4 @@
-package game.gameState;
+package obsolete;
 
 import game.Game;
 import game.Player;
@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import message.MsgIdChoice;
+import message.MsgIDChoice;
 import message.MsgStepDone;
 import message.MsgSync;
 
@@ -47,7 +47,7 @@ public class DistribNumberGameState extends GameState {
 
 	public void sendIdMessageToOthers() {
 		try {
-			game.sendMessageToOther(new MsgIdChoice(myID, getEGameState()));
+			game.sendMessageToOther(new MsgIDChoice(myID, getEGameState()));
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
@@ -135,22 +135,18 @@ public class DistribNumberGameState extends GameState {
 
 	@Override
 	public synchronized void receiveMessage(String from, Serializable msg) throws RemoteException {
-		// !!! TODO warning danger !
-		// System.out.println("yolo");
-		if (game.getCurrentGameState() instanceof PlayerElectionGameState) {
-			ignoredMessage(from, msg);
-			return;
-		}
+		// TODO ditribNumber, problemee : réception des ids des joueurs avant d'avoir générer le miens !
+
 		// System.out.println("yolo2");
 
-		if (msg instanceof MsgIdChoice) {
+		if (msg instanceof MsgIDChoice) {
 			// System.out.println("in idchoice");
 
-			MsgIdChoice msgIdChoice = (MsgIdChoice) msg;
+			MsgIDChoice msgIdChoice = (MsgIDChoice) msg;
 
 			// System.out.println("in idchoice2" + from);
 			// Set "id" to "from"
-			othersID.put(game.getPlayer(from), msgIdChoice.getId());
+			othersID.put(game.getPlayer(from), msgIdChoice.getID());
 
 			// System.out.println("in idchoice3");
 			++nbMsgReceived;
@@ -196,7 +192,6 @@ public class DistribNumberGameState extends GameState {
 
 	private boolean allDifferentID() {
 		List<Player> players = new ArrayList<>(game.getOtherplayers().size() + 1); // contient la liste de tous
-
 		players.add(game.getPlayer());
 		players.addAll(game.getOtherplayers());
 		for (Player p : players)

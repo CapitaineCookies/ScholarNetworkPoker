@@ -1,15 +1,14 @@
 package message;
 
 import JeuCartes.Carte;
-import game.gameState.GameState.EGameState;
 
 public class MsgCard extends Message {
 
 	private static final long serialVersionUID = 8100623855212214008L;
+
 	private Carte card;
 
-	public MsgCard(Carte card, EGameState gameState) {
-		super(gameState);
+	public MsgCard(Carte card) {
 		this.card = card;
 	}
 
@@ -20,6 +19,11 @@ public class MsgCard extends Message {
 	@Override
 	public String msgContains() {
 		return card.toString();
+	}
+
+	@Override
+	public void accept(MessageVisitor visitor) {
+		visitor.receive(this);
 	}
 
 }

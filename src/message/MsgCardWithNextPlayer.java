@@ -1,7 +1,6 @@
 package message;
 
 import JeuCartes.Carte;
-import game.gameState.GameState.EGameState;
 
 public class MsgCardWithNextPlayer extends MsgCard {
 
@@ -9,11 +8,11 @@ public class MsgCardWithNextPlayer extends MsgCard {
 
 	private String nextPlayer;
 
-	public MsgCardWithNextPlayer(Carte card, String nextPlayer, EGameState gameState) {
-		super(card, gameState);
+	public MsgCardWithNextPlayer(Carte card, String nextPlayer) {
+		super(card);
 		this.nextPlayer = nextPlayer;
 	}
-	
+
 	public String getNextPlayer() {
 		return nextPlayer;
 	}
@@ -21,6 +20,11 @@ public class MsgCardWithNextPlayer extends MsgCard {
 	@Override
 	public String msgContains() {
 		return super.msgContains() + " " + nextPlayer;
+	}
+
+	@Override
+	public void accept(MessageVisitor visitor) {
+		visitor.receive(this);
 	}
 
 }
