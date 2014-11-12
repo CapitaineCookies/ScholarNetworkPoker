@@ -28,6 +28,7 @@ public class C_GetOthersGameState extends GameStateStandard {
 		this.recieveplayers = false;
 		this.playersWantToPlay = Collections.synchronizedSet(new HashSet<String>());
 		this.scheduler = new ScheduledThreadPoolExecutor(1);
+		this.scheduler.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
 	}
 
 	@Override

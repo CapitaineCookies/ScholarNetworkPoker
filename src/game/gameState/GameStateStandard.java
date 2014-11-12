@@ -17,6 +17,7 @@ import message.MsgPlayingToo;
 import message.MsgPostSynch;
 import message.MsgPreSynch;
 import message.MsgReleaseCriticalSection;
+import message.MsgResolveConflict;
 import message.MsgSync;
 import message.MsgTradeCards;
 import reso.Reso;
@@ -91,6 +92,11 @@ public abstract class GameStateStandard extends GameState {
 
 	@Override
 	public void receive(MsgReleaseCriticalSection message) {
+		receive((Message) message);
+	}
+	
+	@Override
+	public void receive(MsgResolveConflict message) {
 		receive((Message) message);
 	}
 
