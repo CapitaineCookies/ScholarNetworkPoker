@@ -14,6 +14,7 @@ public class Z_ExitGameState extends GameStateStandard {
 	@Override
 	protected void execute() {
 		disconnectPlayer();
+                notifyStepDone();
 	}
 
 	@Override

@@ -27,9 +27,7 @@ public class Hand implements Serializable {
 	}
 
 	public List<Carte> getRandomCards(int nbCardTrad) {
-		List<Carte> cards = new ArrayList<Carte>(nbCardTrad);
-		
-		Collections.shuffle(handCards);
+		List<Carte> cards = new ArrayList<>(nbCardTrad);
 		
 		for(int i = 0; i < nbCardTrad; ++i)
 			cards.add(pollRandomCard());

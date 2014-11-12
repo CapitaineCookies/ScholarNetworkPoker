@@ -61,13 +61,15 @@ public abstract class GameState implements MessageVisitor {
 	}
 
 	public void start() {
+			log("[StartPreExecute]");
 		preExecute();
 
 		if (makePostPreExecuteSynchro()) {
 			sendPostPreExecuteSynchro();
-			waitPostPreSynchro();
+			waitPostPreExecuteSynchro();
 		}
 		
+			log("[StartExecute]");
 		execute();
 		waitStepDone();
 		
@@ -75,6 +77,7 @@ public abstract class GameState implements MessageVisitor {
 			sendPrePostExecuteSynchro();
 			waitPrePostExecuteSynchro();
 		}
+			log("[StartPostExecute]");
 		postExecute();
 	}
 
@@ -104,18 +107,17 @@ public abstract class GameState implements MessageVisitor {
 	}
 
 	private void sendPostPreExecuteSynchro() {
-		sendToOthers(new MsgPostSynch());
+		sendToOthers(new MsgPreSynch());
 	}
 
-	private void waitPostPreSynchro() {
+	private void waitPostPreExecuteSynchro() {
 
 		if (otherPlayers == null)
 			throw new RuntimeException("otherPlayers unset can't fix number of expected message");
 
 		try {
-			preLock = new Semaphore(0);
 			log("[WaitPreSynch] expected " + otherPlayers.size() + " message");
-			postLock.acquire(otherPlayers.size());
+			preLock.acquire(otherPlayers.size());
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
@@ -263,7 +265,7 @@ public abstract class GameState implements MessageVisitor {
 		return message.getFrom().equals(localPlayer.getName());
 	}
 
-	private Player getPlayer(String name) {
+	protected Player getPlayer(String name) {
 		if (localPlayer.getName().equals(name))
 			return localPlayer;
 		Player needed = otherPlayers.getPlayer(name);

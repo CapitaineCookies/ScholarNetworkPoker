@@ -36,15 +36,15 @@ public class H_CardsShowGameState extends GameStateStandard {
 	
 	@Override
 	public synchronized void receive(MsgCardWithNextPlayer message) {
-		countCard ++;
-		if(countCard == Hand.nbCardPerPlayer * (otherPlayers.size() + 1))
-			notifyStepDone();
-		else if(localPlayer.equals(message.getNextPlayer()))
+		if(localPlayer.equals(message.getNextPlayer()))
 			sendNextShowCard();
 	}
 
 	private void sendNextShowCard() {
-			broadcast(new MsgCardWithNextPlayer(localPlayer.getHand().pollRandomCard(), localPlayer.getNextPlayer().getName()));
+		countCard ++;
+                broadcast(new MsgCardWithNextPlayer(localPlayer.getHand().pollRandomCard(), localPlayer.getNextPlayer().getName()));
+                if(countCard == Hand.nbCardPerPlayer)
+                    notifyStepDone();
 	}
 
 	@Override

@@ -7,7 +7,7 @@ import game.gameState.protocole.B_DeclarationGameState;
 import game.gameState.protocole.C_GetOthersGameState;
 import game.gameState.protocole.D_DistribNumberGameState;
 import game.gameState.protocole.E_ElectionGameState;
-import game.gameState.protocole.F_DistributionGameState;
+import game.gameState.protocole.F_CardsDistributionGameState;
 import game.gameState.protocole.G_TradeCardsGameState;
 import game.gameState.protocole.H_CardsShowGameState;
 import game.gameState.protocole.Z_ExitGameState;
@@ -23,7 +23,7 @@ import message.Message;
 import reso.Client;
 import reso.Reso;
 
-public class Game extends UnicastRemoteObject implements Client, Runnable {
+public class Game extends UnicastRemoteObject implements Client {
 
 	private static final long serialVersionUID = -4064703456148532918L;
 
@@ -122,16 +122,6 @@ public class Game extends UnicastRemoteObject implements Client, Runnable {
 		currentGameState.start();
 	}
 
-	@Override
-	public void run() {
-		throw new RuntimeException("test");
-		// try {
-		// startGame();
-		// } catch (Exception e) {
-		//
-		// }
-	}
-
 	//
 	// public void declarePlayer() {
 	// try {
@@ -184,7 +174,7 @@ public class Game extends UnicastRemoteObject implements Client, Runnable {
 		GameState gameState = null;
 		switch (eGameState) {
 		case A_getReso:
-			gameState = new A_GetResoGameState(this);
+			gameState = new A_GetResoGameState(localPlayer, this);
 			break;
 		case B_declaration:
 			gameState = new B_DeclarationGameState(reso, localPlayer, this);
@@ -199,7 +189,7 @@ public class Game extends UnicastRemoteObject implements Client, Runnable {
 			gameState = new E_ElectionGameState(reso, localPlayer, otherPlayers, this);
 			break;
 		case F_cardsDistribution:
-			gameState = new F_DistributionGameState(reso, localPlayer, otherPlayers, leader,
+			gameState = new F_CardsDistributionGameState(reso, localPlayer, otherPlayers, leader,
 					(G_TradeCardsGameState) getGameState(EGameState.G_cardsTrade));
 			break;
 		case G_cardsTrade:

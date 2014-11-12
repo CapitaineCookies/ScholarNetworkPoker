@@ -1,6 +1,7 @@
 package game.gameState.protocole;
 
 import game.Game;
+import game.LocalPlayer;
 import game.gameState.GameStateStandard;
 
 import java.net.MalformedURLException;
@@ -13,8 +14,8 @@ import reso.Reso;
 public class A_GetResoGameState extends GameStateStandard {
 
 	Game game;
-	public A_GetResoGameState(Game game) {
-		super(null,null,null);
+	public A_GetResoGameState(LocalPlayer localPlayer, Game game) {
+		super(null,localPlayer,null);
 		this.game = game;
 	}
 

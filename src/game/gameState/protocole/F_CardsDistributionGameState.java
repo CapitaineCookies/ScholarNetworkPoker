@@ -9,12 +9,12 @@ import reso.Reso;
 import JeuCartes.Hand;
 import JeuCartes.JeuCartes;
 
-public class F_DistributionGameState extends GameStateStandard {
+public class F_CardsDistributionGameState extends GameStateStandard {
 
 	JeuCartes deck;
 	G_TradeCardsGameState nextGameState;
 
-	public F_DistributionGameState(Reso reso, LocalPlayer localPlayer, OtherPlayers otherPlayers, Player leader, G_TradeCardsGameState nextGameState) {
+	public F_CardsDistributionGameState(Reso reso, LocalPlayer localPlayer, OtherPlayers otherPlayers, Player leader, G_TradeCardsGameState nextGameState) {
 		super(reso, localPlayer, otherPlayers, leader);
 		this.nextGameState = nextGameState;
 	}

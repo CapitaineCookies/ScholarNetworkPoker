@@ -42,12 +42,9 @@ public class C_GetOthersGameState extends GameStateStandard {
 
 	@Override
 	public void receive(MsgPlayers msg) {
-		System.out.println("receive a msgPlayers");
 
 		receiveLocker.lock();
-		System.out.println("receive a msgPlayers 2");
 		if (!recieveplayers) {
-			System.out.println("receive a msgPlayers 3");
 			recieveplayers = true;
 			receiveLocker.unlock();
 
@@ -57,7 +54,6 @@ public class C_GetOthersGameState extends GameStateStandard {
 			notifyStepDone();
 
 		} else {
-			System.out.println("receive a msgPlayers 4");
 			receiveLocker.unlock();
 			ignoreMessage(msg);
 		}
