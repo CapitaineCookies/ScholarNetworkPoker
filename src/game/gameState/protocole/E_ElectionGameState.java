@@ -21,6 +21,11 @@ public class E_ElectionGameState extends GameStateStandard {
     }
 
     @Override
+    protected boolean makePostPreExecuteSynchro() {
+        return true;
+    }
+
+    @Override
     protected void execute() {
         this.participant = true;
         sendMessageElection(localPlayer.getID());

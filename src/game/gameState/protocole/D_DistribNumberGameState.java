@@ -6,6 +6,7 @@ import game.Player;
 import game.gameState.GameStateStandard;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -18,9 +19,7 @@ import java.util.concurrent.Semaphore;
 
 import message.MsgIDChoice;
 import message.MsgResolveConflict;
-import message.MsgSync;
 import reso.Reso;
-import sun.misc.Lock;
 
 public class D_DistribNumberGameState extends GameStateStandard {
 
@@ -28,18 +27,15 @@ public class D_DistribNumberGameState extends GameStateStandard {
 	private Map<Player, Integer> othersID;
 
 	private int nbIDChoice;
-	private int nbSync;
 
-	private int nbConflictInit;
 	private int nbConflictCount;
+	private Set<Player> playersInConflictWithMe;
 	private MsgResolveConflict myMsgConflict;
 	private Map<String, MsgResolveConflict> othersMsgConflicts;
-	private boolean againsConflict;
-	private boolean iHaveAgainsConflict;
 	private Semaphore syncConflict;
+	private Semaphore waitAllConflictResolve;
 
-	public D_DistribNumberGameState(Reso reso, LocalPlayer localPlayer,
-			OtherPlayers otherPlayers) {
+	public D_DistribNumberGameState(Reso reso, LocalPlayer localPlayer, OtherPlayers otherPlayers) {
 		super(reso, localPlayer, otherPlayers);
 	}
 
@@ -48,14 +44,14 @@ public class D_DistribNumberGameState extends GameStateStandard {
 		int taille = otherPlayers.size() + 1;
 		myID = (int) (Math.random() * taille);
 		othersID = new HashMap<>();
+
 		nbIDChoice = 0;
 
-		nbConflictInit = 0;
 		nbConflictCount = 0;
 		myMsgConflict = null;
+		playersInConflictWithMe = new HashSet<>();
 		othersMsgConflicts = new HashMap<>();
-		againsConflict = false;
-		iHaveAgainsConflict = false;
+		waitAllConflictResolve = new Semaphore(0);
 		syncConflict = new Semaphore(0);
 
 	}
@@ -72,6 +68,11 @@ public class D_DistribNumberGameState extends GameStateStandard {
 	}
 
 	@Override
+	protected boolean makePrePostExecuteSynchro() {
+		return true;
+	}
+
+	@Override
 	protected void postExecute() {
 		// Set player ID
 		localPlayer.setID(myID);
@@ -79,169 +80,179 @@ public class D_DistribNumberGameState extends GameStateStandard {
 	}
 
 	@Override
-	public synchronized void receive(MsgIDChoice message) {
+	public void receive(MsgIDChoice message) {
+		try {
 
-		// Set "id" to "from"
-		othersID.put(getFrom(message), message.getID());
+			// Set "id" to "from"
+			othersID.put(getFrom(message), message.getID());
 
-		// Count number of message receive
-		++nbIDChoice;
+			// Count number of message receive
+			++nbIDChoice;
 
-		if (nbIDChoice != otherPlayers.size()) {
-			log(message + " [" + nbIDChoice + "/" + otherPlayers.size() + "]");
-		} else {
-			log(message + "[Done]" + myID + " " + othersID);
+			if (nbIDChoice < otherPlayers.size()) {
+				log(message + " [" + nbIDChoice + "/" + otherPlayers.size() + "]");
+			} else if (nbIDChoice == otherPlayers.size()) {
 
-			// Check the ids
-			if (allDifferentID()) {
-				log("[Check][All diff :)] " + myID + " " + othersID);
-				notifyStepDone();
-			} else {
+				log(message + "[Done]" + myID + " " + othersID);
+
 				if (!iHaveDifferentID()) {
-					log("[Check][Conflict :(] " + myID + " " + othersID);
-					myID = chooseValidID();
-					// Send messageConflict to player in conflict with me
-//					for (Player player : getOtherPlayersInConflict()) {
-//						myMsgConflict = new MsgResolveConflict();
-//						send(player, myMsgConflict);
-//					}
-					log("[Check][Gene New ID] " + myID);
-				} else {
-					log("[Check][WaitResolve]");
-				}
-				nbIDChoice = 0;
-				sendToOthers(new MsgSync());
-			}
 
+					log("[Check][Conflict :(] " + myID + " " + othersID);
+					playersInConflictWithMe = getOtherPlayersInConflict();
+					myMsgConflict = new MsgResolveConflict();
+
+					sendMsgSyncConflict(playersInConflictWithMe);
+					waitMsgSyncConflict(playersInConflictWithMe.size());
+					// myID = chooseValidID();
+					// Send messageConflict to player in conflict with me
+					log("[NbConflict][Size : " + playersInConflictWithMe.size() + "]");
+					for (Player player : playersInConflictWithMe) {
+						send(player, myMsgConflict);
+					}
+					waitAllConflictResolve.acquire(getNumberOfConflict(othersID.values()));
+				} else {
+					log("[Check][WaitResolve] I've different ID. Nb of conflicts : " + getNumberOfConflict(othersID.values()));
+					waitAllConflictResolve.acquire(getNumberOfConflict(othersID.values()));
+				}
+
+				notifyStepDone();
+
+			} else {
+				waitAllConflictResolve.release();
+			}
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
 	}
 
-	private Lock conflictLocker = new Lock();
+	@Override
+	public void receive(MsgSyncConflict message) {
+		syncConflict.release();
+		log(syncConflict.toString());
+	}
+
+	private Object conflictLocker = new Object();
 
 	@Override
 	public void receive(MsgResolveConflict message) {
-		if (iHaveAgainsConflict())
-			iHaveAgainsConflict = true;
-		else if (alreadyExist(message))
-			againsConflict = true;
-
 		synchronized (conflictLocker) {
+
+			// Check conflict in weight
 			++nbConflictCount;
 			othersMsgConflicts.put(message.getFrom(), message);
 
 			// We have receive all conflict messages
-			if (nbConflictCount == nbConflictInit) {
-
-				for (String name : othersMsgConflicts.keySet())
-					send(name, new MsgSyncConflict());
-				
-				try {
-					syncConflict.acquire(othersMsgConflicts.size());
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-
-				if (againsConflict) {
-					if (iHaveAgainsConflict) {
-						myMsgConflict = new MsgResolveConflict();
-					}
-					for (String name : othersMsgConflicts.keySet())
-						send(name, myMsgConflict);
-				}
-				else {
-					setMyIDWithConflict();
-				}
-
+			if (nbConflictCount == playersInConflictWithMe.size()) {
 				nbConflictCount = 0;
+
+				sendMsgSyncConflict(playersInConflictWithMe);
+				waitMsgSyncConflict(playersInConflictWithMe.size());
+
+				if (againsConflict()) {
+					log("[DetectConflict]");
+					myMsgConflict = new MsgResolveConflict();
+					for (Player name : playersInConflictWithMe)
+						send(name, myMsgConflict);
+				} else {
+					setMyIDWithConflict();
+					waitAllConflictResolve.release();
+					log("[ConflcitResolve][NewID : " + myID + "]");
+					sendToOthers(new MsgIDChoice(myID));
+				}
+
 			}
 		}
 	}
 
-	private boolean alreadyExist(MsgResolveConflict message) {
-		Set<MsgResolveConflict> set = new HashSet<>();
-		for(MsgResolveConflict msgResolve : othersMsgConflicts.values())
-			if(!set.add(msgResolve))
-				return false;
-		return true;
+	private void sendMsgSyncConflict(Collection<Player> players) {
+		log("[Sync] send to " + playersInConflictWithMe.size() + " players");
+		for (Player player : players)
+			send(player, new MsgSyncConflict());
 	}
 
-	private boolean iHaveAgainsConflict() {
-		return othersMsgConflicts.values().contains(myMsgConflict);
+	private void waitMsgSyncConflict(int size) {
+		try {
+			log("[Sync] nb message expected " + playersInConflictWithMe.size());
+			syncConflict.acquire(size);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private boolean againsConflict() {
+		Set<Double> set = new HashSet<>();
+		for (MsgResolveConflict msgResolve : othersMsgConflicts.values())
+			if (!set.add(msgResolve.getWeight()))
+				return true;
+		return !set.add(myMsgConflict.getWeight());
 	}
 
 	private void setMyIDWithConflict() {
-		// TODO Auto-generated method stub
-		
+		log("[Check][StartSetNewID] ");
+		List<Integer> availableID = new ArrayList<Integer>();
+		//
+		int numConflict = getNumberOfConflictBefore(othersID.values(), myID);
+
+		log("[Check][StartSetNewID] 2");
+
+		// Add all non selected value + the id in conflict for me
+		for (int i = 0; i < otherPlayers.size() + 1; ++i) {
+			if (!othersID.values().contains(i)) {
+				availableID.add(i);
+				System.out.println(i + " : " + !othersID.values().contains(i));
+			}
+		}
+		availableID.add(myID);
+
+		log("[Check][StartSetNewID] 3");
+		System.out.println(availableID);
+		System.out.println(othersID);
+		System.out.println(numConflict);
+		System.out.println(getPlaceInConflict());
+
+		myID = availableID.get(numConflict + getPlaceInConflict());
+		log("[Check][Gene New ID] " + myID);
 	}
 
-	private List<Player> getOtherPlayersInConflict() {
-		List<Player> result = new ArrayList<>();
+	private int getNumberOfConflict(Collection<Integer> collection) {
+		return getNumberOfConflictBefore(collection, -1);
+	}
+
+	private int getNumberOfConflictBefore(Collection<Integer> usedID, int limit) {
+		int numberOfConflict = 0;
+
+		Set<Integer> uniqueSet = new HashSet<>(usedID);
+		for (Integer temp : uniqueSet) {
+			if (temp >= limit && limit >= 0)
+				break;
+			int freqTemp = Collections.frequency(usedID, temp);
+			if (freqTemp > 1)
+				numberOfConflict += freqTemp;
+		}
+		return numberOfConflict;
+	}
+
+	private int getPlaceInConflict() {
+		int place = 0;
+		for (MsgResolveConflict msg : othersMsgConflicts.values()) {
+			if (msg.getWeight() < myMsgConflict.getWeight())
+				place++;
+		}
+		return place;
+	}
+
+	private Set<Player> getOtherPlayersInConflict() {
+		Set<Player> result = new HashSet<>();
 		for (Entry<Player, Integer> playerID : othersID.entrySet())
 			if (playerID.getValue().equals(myID))
 				result.add(playerID.getKey());
 		return result;
 	}
 
-	@Override
-	public synchronized void receive(MsgSync message) {
-		++nbSync;
-		log(message + " " + nbSync + "/" + otherPlayers.size());
-
-		if (nbSync == otherPlayers.size()) {
-			nbSync = 0;
-			sendToOthers(new MsgIDChoice(myID));
-		}
-	}
-
-	private boolean allDifferentID() {
-		Set<Integer> playersID = new HashSet<Integer>(otherPlayers.size() + 1); // contient
-																				// lPlayere
-																				// de
-																				// tous
-		playersID.add(myID);
-		for (Integer playerID : othersID.values()) {
-			if (!playersID.add(playerID)) {
-				return false;
-			}
-		}
-		return true;
-	}
-
 	private boolean iHaveDifferentID() {
 		Set<Integer> ids = new HashSet<Integer>();
 		ids.addAll(othersID.values());
 		return ids.add(myID);
-	}
-
-	private int chooseValidID() {
-
-		List<Integer> allChooseIDs = new ArrayList<>(otherPlayers.size() + 1);
-
-		allChooseIDs.add(myID);
-		allChooseIDs.addAll(othersID.values());
-
-		// All possibilities
-		Set<Integer> choosable = new HashSet<Integer>();
-		for (int i = 0; i < otherPlayers.size() + 1; ++i) {
-			choosable.add(i);
-		}
-
-		// Remove id already choose
-		choosable.removeAll(allChooseIDs);
-
-		// ReAdd duplicates
-		Set<Integer> choosed = new HashSet<Integer>(otherPlayers.size() + 1);
-		for (Integer id : allChooseIDs) {
-			// If we can't add it, it's a duplicate number. We can choose it
-			if (!choosed.add(id)) {
-				choosable.add(id);
-			}
-		}
-
-		System.out.println(choosable);
-		System.out.println(choosed);
-		int index = (int) (Math.random() * choosable.size());
-		return (int) choosable.toArray()[index];
 	}
 
 	private void setNextPlayer() {
@@ -252,8 +263,7 @@ public class D_DistribNumberGameState extends GameStateStandard {
 			nextPlayer = getMinPlayer();
 		} else {
 			for (Entry<Player, Integer> currentPlayer : othersID.entrySet()) {
-				if (currentPlayer.getValue() < getID(nextPlayer)
-						&& currentPlayer.getValue() > getID(localPlayer)) {
+				if (currentPlayer.getValue() < getID(nextPlayer) && currentPlayer.getValue() > getID(localPlayer)) {
 					nextPlayer = currentPlayer.getKey();
 				}
 			}
@@ -263,16 +273,14 @@ public class D_DistribNumberGameState extends GameStateStandard {
 
 	private Player getMinPlayer() {
 		Player player = localPlayer;
-		Entry<Player, Integer> minP = Collections.min(othersID.entrySet(),
-				new CompareEntry());
+		Entry<Player, Integer> minP = Collections.min(othersID.entrySet(), new CompareEntry());
 		int compareMinP = minP.getValue().compareTo(getID(player));
 		return (compareMinP < 0) ? minP.getKey() : player;
 	}
 
 	private Player getMaxPlayer() {
 		Player player = localPlayer;
-		Entry<Player, Integer> maxP = Collections.max(othersID.entrySet(),
-				new CompareEntry());
+		Entry<Player, Integer> maxP = Collections.max(othersID.entrySet(), new CompareEntry());
 		int compareMaxP = maxP.getValue().compareTo(getID(player));
 		if (compareMaxP == 0) {
 			throw new RuntimeException();

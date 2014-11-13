@@ -1,5 +1,7 @@
 package message;
 
+import game.gameState.protocole.MsgSyncConflict;
+
 public interface MessageVisitor {
 
 	void receive(Message message);
@@ -19,4 +21,5 @@ public interface MessageVisitor {
 	void receive(MsgTradeCards message);
 	void receive(MsgPreSynch message);
 	void receive(MsgPostSynch message);
+	void receive(MsgSyncConflict message);
 }

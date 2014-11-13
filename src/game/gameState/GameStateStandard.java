@@ -3,6 +3,7 @@ package game.gameState;
 import game.LocalPlayer;
 import game.OtherPlayers;
 import game.Player;
+import game.gameState.protocole.MsgSyncConflict;
 import message.Message;
 import message.MsgCard;
 import message.MsgCardWithNextPlayer;
@@ -102,6 +103,11 @@ public abstract class GameStateStandard extends GameState {
 
 	@Override
 	public void receive(MsgSync message) {
+		receive((Message) message);
+	}
+	
+	@Override
+	public void receive(MsgSyncConflict message) {
 		receive((Message) message);
 	}
 
