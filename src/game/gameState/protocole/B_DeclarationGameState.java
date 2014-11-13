@@ -27,7 +27,6 @@ public class B_DeclarationGameState extends GameStateStandard {
 
 	@Override
 	public EGameState getNextState() {
-		// TODO Auto-generated method stub
 		return EGameState.C_getOthers;
 	}
 }

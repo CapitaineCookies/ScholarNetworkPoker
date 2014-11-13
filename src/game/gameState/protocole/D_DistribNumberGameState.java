@@ -20,11 +20,13 @@ import java.util.concurrent.Semaphore;
 import message.MsgIDChoice;
 import message.MsgResolveConflict;
 import reso.Reso;
+import sun.misc.Lock;
 
 public class D_DistribNumberGameState extends GameStateStandard {
 
 	private int myID;
 	private Map<Player, Integer> othersID;
+	private Map<Player, Integer> copyOfOthersID;
 
 	private int nbIDChoice;
 
@@ -43,7 +45,7 @@ public class D_DistribNumberGameState extends GameStateStandard {
 	protected void preExecute() {
 		int taille = otherPlayers.size() + 1;
 		myID = (int) (Math.random() * taille);
-		othersID = new HashMap<>();
+		othersID = Collections.synchronizedMap(new HashMap<Player, Integer>());
 
 		nbIDChoice = 0;
 
@@ -79,48 +81,56 @@ public class D_DistribNumberGameState extends GameStateStandard {
 		setNextPlayer();
 	}
 
+	Lock lock = new Lock();
+
 	@Override
 	public void receive(MsgIDChoice message) {
 		try {
+				// Set "id" to "from"
+			
+				othersID.put(getFrom(message), message.getID());
 
-			// Set "id" to "from"
-			othersID.put(getFrom(message), message.getID());
+				// Count number of message receive
+				++nbIDChoice;
 
-			// Count number of message receive
-			++nbIDChoice;
+				if (nbIDChoice < otherPlayers.size()) {
+					log(message + " [" + nbIDChoice + "/" + otherPlayers.size() + "]");
+				} else if (nbIDChoice == otherPlayers.size()) {
 
-			if (nbIDChoice < otherPlayers.size()) {
-				log(message + " [" + nbIDChoice + "/" + otherPlayers.size() + "]");
-			} else if (nbIDChoice == otherPlayers.size()) {
+					log(message + "[Done]" + myID + " " + othersID);
 
-				log(message + "[Done]" + myID + " " + othersID);
+					copyOfOthersID = new HashMap<>(othersID);
 
-				if (!iHaveDifferentID()) {
+					if (!iHaveDifferentID(othersID.values())) {
 
-					log("[Check][Conflict :(] " + myID + " " + othersID);
-					playersInConflictWithMe = getOtherPlayersInConflict();
-					myMsgConflict = new MsgResolveConflict();
+						log("[Check][Conflict :(] " + myID + " " + othersID);
+						playersInConflictWithMe = getOtherPlayersInConflict();
+						myMsgConflict = new MsgResolveConflict();
 
-					sendMsgSyncConflict(playersInConflictWithMe);
-					waitMsgSyncConflict(playersInConflictWithMe.size());
-					// myID = chooseValidID();
-					// Send messageConflict to player in conflict with me
-					log("[NbConflict][Size : " + playersInConflictWithMe.size() + "]");
-					for (Player player : playersInConflictWithMe) {
-						send(player, myMsgConflict);
+						sendMsgSyncConflict(playersInConflictWithMe);
+						waitMsgSyncConflict(playersInConflictWithMe.size());
+						// myID = chooseValidID();
+						// Send messageConflict to player in conflict with me
+						log("[NbConflict][Size : " + playersInConflictWithMe.size() + "]");
+						for (Player player : playersInConflictWithMe) {
+							send(player, myMsgConflict);
+						}
+					} else {
+						log("[Check][WaitResolve] I've different ID.");
 					}
-					waitAllConflictResolve.acquire(getNumberOfConflict(othersID.values()));
+					List<Integer> listID = new ArrayList<>(copyOfOthersID.values());
+					listID.add(myID);
+					log("Nb new ID expected : " + getNumberOfConflict(listID));
+					waitAllConflictResolve.acquire(getNumberOfConflict(listID));
+					log("[NotifyStepDone]");
+					notifyStepDone();
+
 				} else {
-					log("[Check][WaitResolve] I've different ID. Nb of conflicts : " + getNumberOfConflict(othersID.values()));
-					waitAllConflictResolve.acquire(getNumberOfConflict(othersID.values()));
+					waitAllConflictResolve.release();
+					log(waitAllConflictResolve.toString());
 				}
-
-				notifyStepDone();
-
-			} else {
-				waitAllConflictResolve.release();
-			}
 		} catch (InterruptedException e) {
+			log("[BeInterupted !!!!]");
 			e.printStackTrace();
 		}
 	}
@@ -154,7 +164,7 @@ public class D_DistribNumberGameState extends GameStateStandard {
 					for (Player name : playersInConflictWithMe)
 						send(name, myMsgConflict);
 				} else {
-					setMyIDWithConflict();
+					setMyIDWithConflict(copyOfOthersID.values());
 					waitAllConflictResolve.release();
 					log("[ConflcitResolve][NewID : " + myID + "]");
 					sendToOthers(new MsgIDChoice(myID));
@@ -187,22 +197,21 @@ public class D_DistribNumberGameState extends GameStateStandard {
 		return !set.add(myMsgConflict.getWeight());
 	}
 
-	private void setMyIDWithConflict() {
+	private void setMyIDWithConflict(Collection<Integer> othersID) {
 		log("[Check][StartSetNewID] ");
 		List<Integer> availableID = new ArrayList<Integer>();
 		//
-		int numConflict = getNumberOfConflictBefore(othersID.values(), myID);
+		int numConflict = getNumberOfConflictBefore(othersID, myID);
 
 		log("[Check][StartSetNewID] 2");
 
 		// Add all non selected value + the id in conflict for me
 		for (int i = 0; i < otherPlayers.size() + 1; ++i) {
-			if (!othersID.values().contains(i)) {
+			if (i == myID || Collections.frequency(othersID, i) != 1) {
 				availableID.add(i);
-				System.out.println(i + " : " + !othersID.values().contains(i));
+				System.out.println(i);
 			}
 		}
-		availableID.add(myID);
 
 		log("[Check][StartSetNewID] 3");
 		System.out.println(availableID);
@@ -222,10 +231,10 @@ public class D_DistribNumberGameState extends GameStateStandard {
 		int numberOfConflict = 0;
 
 		Set<Integer> uniqueSet = new HashSet<>(usedID);
-		for (Integer temp : uniqueSet) {
-			if (temp >= limit && limit >= 0)
-				break;
-			int freqTemp = Collections.frequency(usedID, temp);
+		for (Integer currentID : uniqueSet) {
+			if (currentID >= limit && limit >= 0)
+				continue;
+			int freqTemp = Collections.frequency(usedID, currentID);
 			if (freqTemp > 1)
 				numberOfConflict += freqTemp;
 		}
@@ -249,9 +258,9 @@ public class D_DistribNumberGameState extends GameStateStandard {
 		return result;
 	}
 
-	private boolean iHaveDifferentID() {
+	private boolean iHaveDifferentID(Collection<Integer> othersID) {
 		Set<Integer> ids = new HashSet<Integer>();
-		ids.addAll(othersID.values());
+		ids.addAll(othersID);
 		return ids.add(myID);
 	}
 
