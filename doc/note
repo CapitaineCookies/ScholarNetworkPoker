@@ -125,5 +125,5 @@ Reception de message :
 		- ajoute le joueur a la liste d'attente pour la SC
 	- la réception de "MsgTradeCards" :
 		- provoque l'échange de cartes : Ajout des carte reçu au deck et envoi de nouvelles cartes.
-	 
+	 a
 
