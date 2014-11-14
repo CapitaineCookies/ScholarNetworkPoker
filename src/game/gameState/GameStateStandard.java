@@ -7,6 +7,7 @@ import message.Message;
 import message.MsgCard;
 import message.MsgCardWithNextPlayer;
 import message.MsgElection;
+import message.MsgEndingToken;
 import message.MsgGetCriticalSection;
 import message.MsgIDChoice;
 import message.MsgLeader;
@@ -21,6 +22,7 @@ import message.MsgResolveConflict;
 import message.MsgSync;
 import message.MsgSyncConflict;
 import message.MsgTradeCards;
+import message.MsgTradeEnd;
 import reso.Reso;
 
 /*
@@ -53,6 +55,11 @@ public abstract class GameStateStandard extends GameState {
 
 	@Override
 	public void receive(MsgElection message) {
+		receive((Message) message);
+	}
+
+	@Override
+	public void receive(MsgEndingToken message) {
 		receive((Message) message);
 	}
 
@@ -95,7 +102,7 @@ public abstract class GameStateStandard extends GameState {
 	public void receive(MsgReleaseCriticalSection message) {
 		receive((Message) message);
 	}
-	
+
 	@Override
 	public void receive(MsgResolveConflict message) {
 		receive((Message) message);
@@ -105,7 +112,7 @@ public abstract class GameStateStandard extends GameState {
 	public void receive(MsgSync message) {
 		receive((Message) message);
 	}
-	
+
 	@Override
 	public void receive(MsgSyncConflict message) {
 		receive((Message) message);
@@ -121,7 +128,13 @@ public abstract class GameStateStandard extends GameState {
 		super.receive(message);
 	}
 
+	@Override
 	public void receive(MsgPostSynch message) {
 		super.receive(message);
+	}
+
+	@Override
+	public void receive(MsgTradeEnd message) {
+		receive((Message) message);
 	}
 }

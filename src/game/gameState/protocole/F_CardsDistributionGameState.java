@@ -7,37 +7,16 @@ import game.gameState.GameStateStandard;
 import message.MsgCard;
 import reso.Reso;
 import JeuCartes.Hand;
-import JeuCartes.JeuCartes;
 
 public class F_CardsDistributionGameState extends GameStateStandard {
 
-	JeuCartes deck;
-	G_TradeCardsGameState nextGameState;
-
-	public F_CardsDistributionGameState(Reso reso, LocalPlayer localPlayer, OtherPlayers otherPlayers, Player leader, G_TradeCardsGameState nextGameState) {
+	public F_CardsDistributionGameState(Reso reso, LocalPlayer localPlayer, OtherPlayers otherPlayers, Player leader) {
 		super(reso, localPlayer, otherPlayers, leader);
-		this.nextGameState = nextGameState;
-	}
-
-	@Override
-	protected void preExecute() {
-		if (isLeader()) {
-			System.out.println("[Leader][Deck]");
-			getDeck();
-		} else {
-			System.out.println("[NotLeader][Deck]");
-		}
 	}
 
 	@Override
 	protected void execute() {
-		if (isLeader()) {
-			System.out.println("[Leader][Distrib]");
-			makeDistribution();
-		}
-		else {
-			System.out.println("[NotLeader][Distrib]");
-		}
+		System.out.println("[NotLeader][WaitDistrib]");
 	}
 
 	@Override
@@ -51,20 +30,6 @@ public class F_CardsDistributionGameState extends GameStateStandard {
 
 		if (localPlayer.getHand().getSize() == Hand.nbCardPerPlayer) {
 			notifyStepDone();
-		}
-	}
-
-	private void getDeck() {
-		deck = new JeuCartes();
-		nextGameState.setDeck(deck);
-	}
-
-	private void makeDistribution() {
-		for (int i = 0; i < Hand.nbCardPerPlayer; ++i) {
-			for (Player otherPlayer : otherPlayers.getPlayers()) {
-				send(otherPlayer, new MsgCard(deck.nvlleCarte()));
-			}
-			send(localPlayer, new MsgCard(deck.nvlleCarte()));
 		}
 	}
 

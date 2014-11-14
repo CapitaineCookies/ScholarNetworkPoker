@@ -7,7 +7,9 @@ import game.gameState.protocole.B_DeclarationGameState;
 import game.gameState.protocole.C_GetOthersGameState;
 import game.gameState.protocole.D_DistribNumberGameState;
 import game.gameState.protocole.E_ElectionGameState;
+import game.gameState.protocole.FL_CardsDistributionGameState;
 import game.gameState.protocole.F_CardsDistributionGameState;
+import game.gameState.protocole.GL_TradeCardsGameState;
 import game.gameState.protocole.G_TradeCardsGameState;
 import game.gameState.protocole.H_CardsShowGameState;
 import game.gameState.protocole.Z_ExitGameState;
@@ -121,11 +123,19 @@ public class Game extends UnicastRemoteObject implements Client {
 			gameState = new E_ElectionGameState(reso, localPlayer, otherPlayers, this);
 			break;
 		case F_cardsDistribution:
-			gameState = new F_CardsDistributionGameState(reso, localPlayer, otherPlayers, leader,
-					(G_TradeCardsGameState) getGameState(EGameState.G_cardsTrade));
+			if (!isLeader()) {
+				gameState = new F_CardsDistributionGameState(reso, localPlayer, otherPlayers, leader);
+			} else {
+				gameState = new FL_CardsDistributionGameState(reso, localPlayer, otherPlayers, leader);
+			}
 			break;
 		case G_cardsTrade:
-			gameState = new G_TradeCardsGameState(reso, localPlayer, otherPlayers, leader);
+			if (!isLeader()) {
+				gameState = new G_TradeCardsGameState(reso, localPlayer, otherPlayers, leader);
+			} else {
+				FL_CardsDistributionGameState cardsDistrib = (FL_CardsDistributionGameState) getGameState(EGameState.F_cardsDistribution);
+				gameState = new GL_TradeCardsGameState(reso, localPlayer, otherPlayers, leader, cardsDistrib.getDeck());
+			}
 			break;
 		case H_cardsShow:
 			gameState = new H_CardsShowGameState(reso, localPlayer, otherPlayers, leader);
@@ -137,6 +147,10 @@ public class Game extends UnicastRemoteObject implements Client {
 			throw new RuntimeException("Can't create gameState from " + eGameState);
 		}
 		gameStates.put(eGameState, gameState);
+	}
+
+	private boolean isLeader() {
+		return localPlayer.equals(leader);
 	}
 
 	@Override

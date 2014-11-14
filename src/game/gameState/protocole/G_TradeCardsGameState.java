@@ -6,26 +6,27 @@ import game.Player;
 import game.gameState.GameStateStandard;
 
 import java.util.List;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.Semaphore;
 
 import message.MsgCard;
+import message.MsgEndingToken;
 import message.MsgGetCriticalSection;
 import message.MsgObtainCriticalSection;
 import message.MsgReleaseCriticalSection;
 import message.MsgTradeCards;
+import message.MsgTradeEnd;
 import reso.Reso;
 import JeuCartes.Carte;
-import JeuCartes.JeuCartes;
 
 public class G_TradeCardsGameState extends GameStateStandard {
 
-	CriticalSectionThread criticalSectionSender = null;
+	public static final int NB_MAX_TRADE = 2;
 
-	private JeuCartes deck;
 	private Semaphore waitCriticalSection;
 	private Semaphore waitCardsReception;
+
+	private int nbTradeMade;
+	private int nbTradeMadefromlastReceiveToken;
 
 	public G_TradeCardsGameState(Reso reso, LocalPlayer localPlayer, OtherPlayers otherPlayers, Player leader) {
 		super(reso, localPlayer, otherPlayers, leader);
@@ -33,27 +34,11 @@ public class G_TradeCardsGameState extends GameStateStandard {
 		this.waitCardsReception = new Semaphore(0);
 		this.waitCriticalSection = new Semaphore(0);
 
-		// Leader :
-		this.deck = null;
-		this.criticalSectionSender = null;
 	}
 
 	@Override
 	protected void preExecute() {
-		if (isLeader()) {
-			startTradeThread();
-		}
-	}
-
-	private void startTradeThread() {
-		criticalSectionSender = new CriticalSectionThread();
-		criticalSectionSender.start();
-
-	}
-
-	// Leader
-	public void setDeck(JeuCartes deck) {
-		this.deck = deck;
+		this.nbTradeMadefromlastReceiveToken = 1;
 	}
 
 	@Override
@@ -63,7 +48,8 @@ public class G_TradeCardsGameState extends GameStateStandard {
 
 	@Override
 	protected void execute() {
-		tradeHisCards();
+		nbTradeMade = 1;
+		makeATrade();
 	}
 
 	@Override
@@ -72,47 +58,31 @@ public class G_TradeCardsGameState extends GameStateStandard {
 	}
 
 	@Override
-	protected void postExecute() {
-		if (isLeader()) {
-			criticalSectionSender.interrupt();
-		}
+	public void receive(MsgEndingToken message) {
+		computeMessage(message);
+		sendToNextPlayer(message);
 	}
 
-	@Override
-	public void receive(MsgTradeCards msg) {
-		int nbCardsTarde = msg.getCards().size();
+	protected void sendToNextPlayer(MsgEndingToken message) {
+		send(localPlayer.getNextPlayer(), message);
+	}
 
-		if (!isLeader()) {
-			throw new RuntimeException();
-		}
+	protected void computeMessage(MsgEndingToken message) {
 
-		// TODO Suppress synchro : we are in critical section
-		synchronized (deck) {
-			// Add cards trade to deck
-			for (Carte carte : msg.getCards()) {
-				deck.ajoutCarte(carte);
+		message.invalidToken(localPlayer.getName(), nbTradeMadefromlastReceiveToken);
+		nbTradeMadefromlastReceiveToken = 0;
+		if (nbTradeMade < NB_MAX_TRADE) {
+
+			int nbOthersTrade = message.takeNbTradeMade(localPlayer.getName());
+			log("[NbTradeMade : " + nbOthersTrade + "]");
+			if (nbOthersTrade < (Math.random() * 10)) {
+				makeATrade();
+				nbTradeMadefromlastReceiveToken++;
+				++nbTradeMade;
+				message.invalidToken(localPlayer.getName(), nbTradeMadefromlastReceiveToken);
+				nbTradeMadefromlastReceiveToken = 0;
 			}
-
-			// Give new cards
-			for (int i = 0; i < nbCardsTarde; ++i) {
-				sendCard(msg.getFrom(), deck.nvlleCarte());
-			}
 		}
-
-	}
-
-	@Override
-	public void receive(MsgGetCriticalSection message) {
-		if (!isLeader()) {
-			log(localPlayer + " isn't the leader !");
-			super.receive(message);
-		}
-		criticalSectionSender.add(message.getFrom());
-	}
-
-	@Override
-	public void receive(MsgReleaseCriticalSection message) {
-		criticalSectionSender.releaseCriticalSection();
 	}
 
 	@Override
@@ -121,28 +91,27 @@ public class G_TradeCardsGameState extends GameStateStandard {
 	}
 
 	@Override
-	public void receive(MsgCard msgCard) {
-		localPlayer.getHand().add(msgCard.getCard());
+	public void receive(MsgCard message) {
+		localPlayer.getHand().add(message.getCard());
 		waitCardsReception.release();
 	}
 
-	private void tradeHisCards() {
-		// int nbExchange = (int) (Math.random() * 3) + 1; // 0, 1, 2 or 3
-		int nbExchange = 1;
-		for (int i = 0; i < nbExchange; ++i) {
-			log("[trade] [" + i + '/' + nbExchange + ']');
-			getCriticalSection();
-			waitCriticalSection();
-
-			int nbCardsTrade = (int) (Math.random() * (5 + 1));
-			sendTardeCards(localPlayer.getHand().getRandomCards(nbCardsTrade));
-
-			waitCardsReception(nbCardsTrade);
-			releaseCriticalSection();
-
-		}
-		log("[trade][Done]");
+	@Override
+	public void receive(MsgTradeEnd message) {
 		notifyStepDone();
+	}
+
+	private void makeATrade() {
+		log("[trade][Start]");
+		getCriticalSection();
+		waitCriticalSection();
+
+		int nbCardsTrade = (int) (Math.random() * 5) + 1;
+		sendTardeCards(localPlayer.getHand().getRandomCards(nbCardsTrade));
+
+		waitCardsReception(nbCardsTrade);
+		releaseCriticalSection();
+		log("[trade][Done]");
 	}
 
 	private void getCriticalSection() {
@@ -170,10 +139,6 @@ public class G_TradeCardsGameState extends GameStateStandard {
 		}
 	}
 
-	private void sendCard(String to, Carte card) {
-		send(to, new MsgCard(card));
-	}
-
 	private void sendTardeCards(List<Carte> cards) {
 		send(leader, new MsgTradeCards(cards));
 	}
@@ -186,47 +151,5 @@ public class G_TradeCardsGameState extends GameStateStandard {
 	@Override
 	public EGameState getNextState() {
 		return EGameState.H_cardsShow;
-	}
-
-	class CriticalSectionThread extends Thread {
-
-		private BlockingQueue<String> blockingQueue;
-		private Semaphore criticalSectionLocker;
-
-		public CriticalSectionThread() {
-			this.blockingQueue = new LinkedBlockingDeque<>();
-			this.criticalSectionLocker = new Semaphore(1);
-		}
-
-		@Override
-		public void run() {
-			super.run();
-			log("[Thread][Start]");
-			try {
-				while (!interrupted()) {
-					getCriticalSection();
-					sendCriticalSection();
-				}
-			} catch (InterruptedException e) {
-			} finally {
-				log("[Thread][End]");
-			}
-		}
-
-		private void sendCriticalSection() throws InterruptedException {
-			send(blockingQueue.take(), new MsgObtainCriticalSection());
-		}
-
-		private void getCriticalSection() throws InterruptedException {
-			criticalSectionLocker.acquire();
-		}
-
-		public void releaseCriticalSection() {
-			criticalSectionLocker.release();
-		}
-
-		public void add(String playerName) {
-			blockingQueue.add(playerName);
-		}
 	}
 }

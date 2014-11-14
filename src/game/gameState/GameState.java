@@ -29,11 +29,6 @@ public abstract class GameState implements MessageVisitor {
 		}
 	}
 
-//	protected int nbMsgSyncState;
-//	protected Object stepOtherPlayersDone;
-//	// protected Game game;
-//	protected List<Player> playersReady;
-
 	protected Semaphore preLock;
 	protected Semaphore postLock;
 	protected Semaphore stepDone;
@@ -47,9 +42,6 @@ public abstract class GameState implements MessageVisitor {
 	}
 	
 	public GameState(Reso reso, LocalPlayer localPlayer, OtherPlayers otherPlayers, Player leader) {
-		// this.playersReady = new Vector<>();
-		// this.game = game;
-		// nbMessageStepDone = 0;
 		this.reso = reso;
 		this.localPlayer = localPlayer;
 		this.otherPlayers = otherPlayers;
@@ -248,8 +240,6 @@ public abstract class GameState implements MessageVisitor {
 //	}
 	
 	public boolean isLeader() {
-		System.out.println("leader : " + leader);
-		System.out.println("player : " + localPlayer);
 		return leader.equals(localPlayer);
 	}
 

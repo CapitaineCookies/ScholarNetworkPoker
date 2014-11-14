@@ -7,6 +7,7 @@ public interface MessageVisitor {
 	void receive(MsgCard message);
 	void receive(MsgCardWithNextPlayer message);
 	void receive(MsgElection message);
+	void receive(MsgEndingToken message);
 	void receive(MsgGetCriticalSection message);
 	void receive(MsgIDChoice message);
 	void receive(MsgLeader message);
@@ -21,4 +22,5 @@ public interface MessageVisitor {
 	void receive(MsgPreSynch message);
 	void receive(MsgPostSynch message);
 	void receive(MsgSyncConflict message);
+	void receive(MsgTradeEnd message);
 }
