@@ -1,6 +1,5 @@
 package message;
 
-import game.gameState.protocole.MsgSyncConflict;
 
 public interface MessageVisitor {
 

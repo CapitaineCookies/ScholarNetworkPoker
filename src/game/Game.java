@@ -31,7 +31,6 @@ public class Game extends UnicastRemoteObject implements Client {
 	protected LocalPlayer localPlayer;
 	protected Player leader;
 	protected GameState currentGameState;
-	// protected GameState gameStates[];
 	protected OtherPlayers otherPlayers;
 	protected Map<EGameState, GameState> gameStates;
 
@@ -42,36 +41,11 @@ public class Game extends UnicastRemoteObject implements Client {
 		this.localPlayer = localPlayer;
 		this.leader = localPlayer;
 		this.gameStates = new HashMap<>();
-
-		// gameStates = new GameState[EGameState.values().length];
-		//
-		// gameStates[EGameState.getReso.ordinal()] = new A_GetResoGameState(this);
-		// gameStates[EGameState.declaration.ordinal()] = new B_DeclarationGameState(reso, localPlayer, this);
-		// gameStates[EGameState.getOthers.ordinal()] = new C_GetOthersGameState(reso, localPlayer, otherPlayers);
-		// gameStates[EGameState.distribNumber.ordinal()] = new D_DistribNumberGameState(reso, localPlayer,
-		// otherPlayers);
-		// gameStates[EGameState.election.ordinal()] = new E_ElectionGameState(reso, localPlayer, otherPlayers, this);
-		// gameStates[EGameState.cardsDistribution.ordinal()] = new F_DistributionGameState(reso, localPlayer,
-		// otherPlayers, tradeState);
-		// gameStates[EGameState.cardsTrade.ordinal()] = tradeState;
-		// gameStates[EGameState.cardsShow.ordinal()] = new H_CardsShowGameState(reso, localPlayer, otherPlayers);
-		// gameStates[EGameState.exit.ordinal()] = new Z_ExitGameState(reso, localPlayer);
-
-		this.currentGameState = getGameState(EGameState.A_getReso);
 	}
 
 	public Player getNextPlayer() {
 		return localPlayer.getNextPlayer();
 	}
-
-	//
-	// public LocalPlayer getPlayer() {
-	// return player;
-	// }
-	//
-	// public Set<RemotePlayer> getOtherplayers() {
-	// return otherPlayers;
-	// }
 
 	public void setReso(Reso reso) {
 		this.reso = reso;
@@ -109,10 +83,10 @@ public class Game extends UnicastRemoteObject implements Client {
 		} else {
 			throw new RemoteException("ERROR : Receive non message type !");
 		}
-		// currentGameState.receiveMessage(from, msg);
 	}
 
 	public void startGame() {
+		currentGameState = getGameState(EGameState.A_getReso);
 		do {
 			System.out.println("[" + localPlayer.getName() + "][" + currentGameState + "][start]");
 			currentGameState.start();
@@ -122,53 +96,11 @@ public class Game extends UnicastRemoteObject implements Client {
 		currentGameState.start();
 	}
 
-	//
-	// public void declarePlayer() {
-	// try {
-	// reso.declareClient(player.getName(), this);
-	// } catch (RemoteException e) {
-	// e.printStackTrace();
-	// }
-	// }
-
-	// public boolean isLeader() {
-	// return leader.equals(localPlayer);
-	// }
-
-	// public Player getPlayer(String name) {
-	// for (Player otherPlayer : otherPlayers)
-	// if (otherPlayer.name.equals(name)) {
-	// return otherPlayer;
-	// }
-	//
-	// if (player.name.equals(name)) {
-	// return player;
-	// }
-	// throw new RuntimeException("player : " + name + " unexist !");
-	// }
-
-	// public boolean containPlayer(String name) {
-	// // TODO test : otherPlayers.contains(name)
-	// for (RemotePlayer otherPlayer : otherPlayers) {
-	// if (otherPlayer.name.equals(name)) {
-	// return true;
-	// }
-	// }
-	// return player.getName().equals(name);
-	// }
-
 	public GameState getGameState(EGameState eGameState) {
 		if (!gameStates.containsKey(eGameState))
 			createGameState(eGameState);
 		return gameStates.get(eGameState);
 	}
-
-	// public GameState getGameState(EGameState eGameState) {
-	// for (GameState gameState : gameStates)
-	// if (gameState.getGameState() == eGameState)
-	// return gameState;
-	// throw new RuntimeException("gameState : " + eGameState + " unexist !");
-	// }
 
 	private void createGameState(EGameState eGameState) {
 		GameState gameState = null;

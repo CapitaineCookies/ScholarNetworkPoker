@@ -3,10 +3,10 @@ package reso;
 import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Random;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class ResoImpl extends UnicastRemoteObject implements Reso {
 
-	private static class Message {
+	private class Message {
 
 		public final int id;
 		public final String from;
@@ -37,7 +37,7 @@ public class ResoImpl extends UnicastRemoteObject implements Reso {
 
 	private static final long serialVersionUID = 8972046147564128682L;
 
-	private final static int MAX_DELAY_IN_SECONDS = 3;
+	private final static int MAX_DELAY_IN_SECONDS = 4;
 
 	private final AtomicInteger currentMessageId;
 	private final Map<String, Client> clients;
@@ -48,14 +48,35 @@ public class ResoImpl extends UnicastRemoteObject implements Reso {
 		super();
 		this.currentMessageId = new AtomicInteger(0);
 		this.clients = Collections.synchronizedMap(new HashMap<String, Client>());
-		this.scheduler = new ScheduledThreadPoolExecutor(200);
+		this.scheduler = new ScheduledThreadPoolExecutor(20);
 		this.random = new Random(System.currentTimeMillis());
 	}
 
 	@Override
 	public void declareClient(String name, Client client) throws RemoteException {
-		clients.put(name, client);
-		System.out.println("[RESO] new client declared : " + name);
+		System.err.println("[RESO] new client " + name);
+		synchronized (clients) {
+			clients.put(name, client);
+		}
+		return;
+	}
+
+	@Override
+	public void removeClient(String name) throws RemoteException {
+		System.err.println("[RESO] remove client " + name);
+		synchronized (clients) {
+			clients.remove(name);
+		}
+		return;
+	}
+
+	@Override
+	public void resetClients() throws RemoteException {
+		System.err.println("[RESO] reset clients ");
+		synchronized (clients) {
+			clients.clear();
+		}
+		return;
 	}
 
 	@Override
@@ -66,21 +87,25 @@ public class ResoImpl extends UnicastRemoteObject implements Reso {
 		synchronized (random) {
 			delay = (int) (random.nextDouble() * MAX_DELAY_IN_SECONDS * 1000);
 		}
-		System.out.println("[RESO][Send] " + msg + "(delay: " + delay + "ms) : " + msg.content);
+		System.out.println("[RESO] " + msg + " arrived (delay: " + delay + "ms)");
 
 		scheduler.schedule(new Runnable() {
 			@Override
 			public void run() {
-				Client client = clients.get(msg.to);
-
+				Client client = null;
+				synchronized (clients) {
+					client = clients.get(msg.to);
+				}
 				if (client == null) {
 					System.err.println("[RESO] error, unknown client id: " + msg.to);
 					return;
 				}
 
 				try {
-					System.out.println("[RESO][Recv] " + msg + " transmitted");
+
 					client.receiveMessage(msg.from, msg.content);
+					System.out.println("[RESO] " + msg + " transmitted");
+
 				} catch (RemoteException e) {
 					System.err.println("[RESO] error while sending " + msg);
 					e.printStackTrace();
@@ -97,23 +122,28 @@ public class ResoImpl extends UnicastRemoteObject implements Reso {
 		synchronized (random) {
 			delay = (int) (random.nextDouble() * MAX_DELAY_IN_SECONDS * 1000);
 		}
-		System.out.println("[RESO][Brod] message(" + msg.id + ") from " + msg.from + " to " + clients.keySet() + " (delay: " + delay + "ms)" + msg.content);
+		System.out.println("[RESO] " + msg + " arrived (delay: " + delay + "ms)");
 
 		scheduler.schedule(new Runnable() {
 			@Override
 			public void run() {
 
-//				Collection<Client> clientList = clients.values();
-				for (Entry<String, Client> client : clients.entrySet()) {
+				Collection<Client> clientList = null;
+				synchronized (clients) {
+					clientList = clients.values();
+				}
+				for (Client client : clientList) {
 
-					if (client == null || client.getKey().isEmpty() || client.getValue() == null) {
+					if (client == null) {
 						System.err.println("[RESO] error, unknown client id: " + msg.to);
 						return;
 					}
 
 					try {
-						System.out.println("[RESO][Recv] message(" + msg.id + ") from " + msg.from + " to " + client.getKey() + " transmitted  : " + msg.content);
-						client.getValue().receiveMessage(msg.from, msg.content);
+
+						client.receiveMessage(msg.from, msg.content);
+						System.out.println("[RESO] " + msg + " transmitted");
+
 					} catch (RemoteException e) {
 						System.err.println("[RESO] error while sending " + msg);
 						e.printStackTrace();
@@ -121,12 +151,6 @@ public class ResoImpl extends UnicastRemoteObject implements Reso {
 				}
 			}
 		}, delay, TimeUnit.MILLISECONDS);
-	}
-
-	@Override
-	public void disconnect(String clientName) {
-		clients.remove(clientName);
-		System.out.println(clientName + " disconnect");
 	}
 
 }

@@ -3,7 +3,6 @@ package game.gameState;
 import game.LocalPlayer;
 import game.OtherPlayers;
 import game.Player;
-import game.gameState.protocole.MsgSyncConflict;
 import message.Message;
 import message.MsgCard;
 import message.MsgCardWithNextPlayer;
@@ -20,6 +19,7 @@ import message.MsgPreSynch;
 import message.MsgReleaseCriticalSection;
 import message.MsgResolveConflict;
 import message.MsgSync;
+import message.MsgSyncConflict;
 import message.MsgTradeCards;
 import reso.Reso;
 

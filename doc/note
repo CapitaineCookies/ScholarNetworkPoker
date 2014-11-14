@@ -1,8 +1,129 @@
 Verifier le waitStepDone
 Comment marche notify ? Est-il bloquant ? Sinon tuiliser un boolean pour savoir si l'étape est déja done avant de ce mettre en attente
-[CardsTrade] probl�me : file d'attente non cr�er lors de l'ajout d'un �l�ment dans celle-ci
+[CardsTrade] probl�me : file d'attente non cr�er lors de l'ajout d'un �l�ment dans celle-ci
 
-ditribNumber, problemee : r�ception des ids des joueurs avant d'avoir g�n�rer le miens !
+ditribNumber, problemee : r�ception des ids des joueurs avant d'avoir g�n�rer le miens !
 
 
 algo election : http://www.cs.rug.nl/~eirini/DS_slides/leader_election.pdf
+
+
+
+1. GetReso
+Ne fait que récupérer le réseau via le naming
+
+
+
+2. Declaration
+Declare le joueur dans le reseau
+
+
+
+3. GetOthers
+S'occupe de récupérer la liste de tous les participant.
+
+Protocole :
+- On commence par envoyer un message de signalement(MsgPlaying) en broadcast
+- Lorsque l'on reçoi ce message, et on signale en retour que l'on participe aussi (MsgPlayingToo) au joueur nous l'ayant envoyé
+- Une fois le temps écoulé, on envoi en broadcast la liste des participant.
+- La première liste reçu fait fois, les autres sont ignoré.
+- Si notre nom ne figure pas dans cette liste, on quitte la partie.
+
+Problématique rencontré :
+- Lors du broadcast, on reçoi soit meme son message. On l'enregistre comme les autre mais on n'envoi pas de message de réponse
+- Le message de réponse est obligatoire dans la mesure où il est possible qu'un joueur qui se connect ne connaisse pas les joueurs qui le précède et peux envoyer sa liste avant eux.
+
+Amélioration :
+- Dans la théorie, il n'est pas garanti que tous les joueurs aient la même liste. 
+Pour apporter cette garanti, il faudrait que tous les joueurs s'échange la liste reçu. 
+Tous les noms qui ne seraient pas en communs seraient supprimés.
+
+
+
+4. DistribNumber
+Répartition de d'id entre les participants
+ 
+Protocole :
+- Tous les joueurs génèrent un nombre aléatoire compris entre 0 et el nombre de joueurs. Ils envoie ensuite ce nobmre au autres participants.
+- Chaque joueurs attend de recevoir les nombres des autres joueurs. 
+- Une fois tous les messages d'id recu, on verifie si notre id entre en collision avec un autre joueur. 
+	Si collision, on envoie un message de résolutions aux joueurs en conflit avec nous
+- On attend ensuite que les joueurs ayant un conflit nous envoi leur nouvelle id
+
+Résolution de conflict
+Les messages de résolution de conflit contient un nombre aléatoire.
+- On attend la réception de tous les messages de conflict qui nous sont destiné
+- On envoi ensuite un message de syncro afin de s'assurer que toutes les personnes aient bien reçu notre message
+- Si deux joueurs ont une valeur de résolution égale, tous les participant regénère un nombre aléatoir et le renvoi
+- Une fois tous les nombres différent. On calcul notre nouvelle id de la façon suivante : 
+	Parmis la liste des id libre on prend la ième valeur
+	i étant le nombre d'id en conflict avant le notre + notre position dans le conflict pour mon id
+	exemple : monID = 3, lesAutresID = [0,0,2,3] 
+	Les id dispos sont [0, 1, 3, 4]
+	Nombre d'id avant le miens : 2
+	Les valeurs que je peux prendre sont 2 et 3.
+	La premiere valeur est atribué au joueurs ayant le plus petit random et ainsi de suite dans l'ordre crosiant.
+	
+- Une fois notre ID déterminé, on l'envoi aux autres joueurs.
+
+En considérant que la résolution de conflict converge rapidement, la complexité en nombre de message est de l'ordre de O(n2).
+La cause principale étant la topologie du réseau qui nécésite l'envoi de message en broadcast
+
+
+La première version implémanté était basé sur le même principe. 
+Cependant la résolution de conflit se faisait en redonnant un nombre aléatoire parmis les nombre non choisi.
+L'algorithme était relativement plus simple mais mettait plus de temps à converger à cause de conflict pouvant ce répéter si les nouveaux nombres choisis étaient identiques.
+
+
+
+
+5. Election
+...
+
+
+
+6. Distrib
+...
+
+
+
+7.TradeCards
+Echange de cartes.
+Cette algorithme implémente une section critique.
+Cette section critique est prise lorsque un joueur donne des cartes 
+et est relaché lorsque le joueur à effectivement reçu toutes ces nouvelles cartes.
+
+
+Protocole :
+- Coté joueurs :
+	- Un joueur commence par demander la section critique en envoyant un message.
+	- Une fois cette section critique obtenu, il envoi un certain nombre de carte au leader.
+	- Il attend de recevoir toutes ces nouvelles cartes.
+	- Une fois qu'il a toutes ces cartes, il envoi un message pour relacher la SC.
+	- Il peut recommencer l'operation encore une fois.
+	
+Règle :
+	- réception de MsgObtainCriticalSection :
+		- On relache l'attente de la SC coté joueur. Cela entraine l'envoi des cartes à échanger (MsgTradeCards).
+	- réception de MsgCard : 
+		- On ajoute la carte à la main du joueur et on le notify au thread principale
+
+- Coté leader :
+	- Lorsqu'il commence, il lance un second thread.
+		- Le premier aura le meme role que les autres joueurs.
+		- Le second gèrera la section critique.
+	(Le protocole qui suit décrit le second thread)
+	- Il commence par prendre la SC interne.
+	- Il prend la premiere demande de SC par un joueurs ou attend une demande si il n'y en a pas.
+	- Il envoi la SC à ce joueur (MsgObtainCriticalSection)
+	- reboucle à la prise de SC
+	
+Reception de message :
+	- la réception de "MsgReleaseCriticalSection" :
+		- provoque le relachement de la SC
+	- la réception de "MsgGetCriticalSection"
+		- ajoute le joueur a la liste d'attente pour la SC
+	- la réception de "MsgTradeCards" :
+		- provoque l'échange de cartes : Ajout des carte reçu au deck et envoi de nouvelles cartes.
+	 
+

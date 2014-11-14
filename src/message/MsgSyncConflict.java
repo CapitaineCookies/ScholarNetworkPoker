@@ -1,7 +1,5 @@
-package game.gameState.protocole;
+package message;
 
-import message.Message;
-import message.MessageVisitor;
 
 public class MsgSyncConflict extends Message {
 

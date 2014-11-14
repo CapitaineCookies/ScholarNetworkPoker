@@ -19,6 +19,7 @@ import java.util.concurrent.Semaphore;
 
 import message.MsgIDChoice;
 import message.MsgResolveConflict;
+import message.MsgSyncConflict;
 import reso.Reso;
 import sun.misc.Lock;
 

@@ -233,7 +233,7 @@ public abstract class GameState implements MessageVisitor {
 
 	public void disconnectPlayer() {
 		try {
-			reso.disconnect(localPlayer.getName());
+			reso.removeClient(localPlayer.getName());
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
