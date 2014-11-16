@@ -10,17 +10,29 @@ public abstract class Message implements Serializable {
 
 	String from = null;
 	EGameState senderGameState = null;
-	
+
 	public String getFrom() {
 		return from;
+	}
+
+	public void setFrom(String from) {
+		this.from = from;
+	}
+
+	public EGameState getSenderGameState() {
+		return senderGameState;
 	}
 
 	public void setSenderGameState(EGameState senderGameState) {
 		this.senderGameState = senderGameState;
 	}
-	
-	public EGameState getSenderGameState() {
-		return senderGameState;
+
+	public abstract void accept(MessageVisitor visitor);
+
+	public abstract String msgContains();
+
+	private String msgName() {
+		return getClass().getSimpleName();
 	}
 
 	@Override
@@ -32,17 +44,4 @@ public abstract class Message implements Serializable {
 			return "[" + msgName() + " : " + msgContains + "]";
 	}
 
-	public abstract String msgContains();
-
-
-	private String msgName() {
-		return getClass().getSimpleName();
-	}
-
-	public abstract void accept(MessageVisitor visitor);
-
-	
-	public void setFrom(String from) {
-		this.from = from;
-	}
 }

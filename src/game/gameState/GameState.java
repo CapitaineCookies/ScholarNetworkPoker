@@ -10,13 +10,10 @@ import java.util.Collection;
 import java.util.concurrent.Semaphore;
 
 import message.Message;
-import message.MessageVisitor;
-import message.MsgPostSynch;
-import message.MsgPreSynch;
 import reso.Client;
 import reso.Reso;
 
-public abstract class GameState implements MessageVisitor {
+public abstract class GameState extends GameStateVisitorImpl {
 
 	public enum EGameState {
 
@@ -36,16 +33,11 @@ public abstract class GameState implements MessageVisitor {
 	protected final Reso reso;
 	protected final LocalPlayer localPlayer;
 	protected final OtherPlayers otherPlayers;
-	protected final Player leader;
+
 	public GameState(Reso reso, LocalPlayer localPlayer, OtherPlayers otherPlayers) {
-		this(reso, localPlayer, otherPlayers, null);
-	}
-	
-	public GameState(Reso reso, LocalPlayer localPlayer, OtherPlayers otherPlayers, Player leader) {
 		this.reso = reso;
 		this.localPlayer = localPlayer;
 		this.otherPlayers = otherPlayers;
-		this.leader = leader;
 
 		this.preLock = new Semaphore(0);
 		this.postLock = new Semaphore(0);
@@ -53,28 +45,24 @@ public abstract class GameState implements MessageVisitor {
 	}
 
 	public void start() {
-			log("[StartPreExecute]");
+		log("[StartPreExecute]");
 		preExecute();
 
 		if (makePostPreExecuteSynchro()) {
 			sendPostPreExecuteSynchro();
 			waitPostPreExecuteSynchro();
 		}
-		
-			log("[StartExecute]");
+
+		log("[StartExecute]");
 		execute();
 		waitStepDone();
-		
+
 		if (makePrePostExecuteSynchro()) {
 			sendPrePostExecuteSynchro();
 			waitPrePostExecuteSynchro();
 		}
-			log("[StartPostExecute]");
+		log("[StartPostExecute]");
 		postExecute();
-	}
-
-	public void log(String logMessage) {
-		System.out.println("[" + localPlayer.getName() + "][" + getGameState() + "]" + logMessage);
 	}
 
 	// ///////////////////////
@@ -98,23 +86,9 @@ public abstract class GameState implements MessageVisitor {
 		return false;
 	}
 
-	private void sendPostPreExecuteSynchro() {
-		sendToOthers(new MsgPreSynch());
-	}
+	protected abstract void sendPostPreExecuteSynchro();
 
-	private void waitPostPreExecuteSynchro() {
-
-		if (otherPlayers == null)
-			throw new RuntimeException("otherPlayers unset can't fix number of expected message");
-
-		try {
-			log("[WaitPreSynch] expected " + otherPlayers.size() + " message");
-			preLock.acquire(otherPlayers.size());
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-
-	}
+	protected abstract void waitPostPreExecuteSynchro();
 
 	/**
 	 * Put here the Main execution of the gameState
@@ -130,42 +104,18 @@ public abstract class GameState implements MessageVisitor {
 		return false;
 	}
 
-	private void sendPrePostExecuteSynchro() {
-		sendToOthers(new MsgPostSynch());
-	}
+	protected abstract void sendPrePostExecuteSynchro();
 
-	private void waitPrePostExecuteSynchro() {
-
-		if (otherPlayers == null)
-			throw new RuntimeException("otherPlayers unset can't fix number of expected message");
-
-		try {
-			log("[WaitPostSynch] expected " + otherPlayers.size() + " message");
-			postLock.acquire(otherPlayers.size());
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-	}
+	protected abstract void waitPrePostExecuteSynchro();
 
 	/**
-	 * Call after calls exectue() AND notifyDone()
-	 * Use of initializations. Use with postExecuteSynchro for more secure
+	 * Call after calls execute() AND notifyDone() Use of initializations. Use with postExecuteSynchro for more secure
 	 * 
 	 */
 	protected void postExecute() {
 		// By default, do nothing
 	}
-	
-	@Override
-	public void receive(MsgPreSynch message) {
-		preLock.release();
-	}
-	
-	@Override
-	public void receive(MsgPostSynch message) {
-		postLock.release();
-	}
-	
+
 	/**
 	 * 
 	 * @return The enum for this gameState
@@ -179,7 +129,7 @@ public abstract class GameState implements MessageVisitor {
 	public abstract EGameState getNextState();
 
 	// /////////////////
-	// Reso
+	// Network
 	// /////////////////
 
 	public void send(String to, Message message) {
@@ -196,14 +146,21 @@ public abstract class GameState implements MessageVisitor {
 		send(to.getName(), msg);
 	}
 
-	public void sendToOthers(Message msg) {
-		for (Player player : otherPlayers.getPlayers())
-			send(player, msg);
+	public void sendToOthers(Message message) {
+		message.setSenderGameState(getGameState());
+		log("[Send]  to  " + otherPlayers.getPlayers() + message);
+		for (Player player : otherPlayers.getPlayers()) {
+			try {
+				reso.sendMessage(localPlayer.getName(), player.getName(), message);
+			} catch (RemoteException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	public void broadcast(Message message) {
 		message.setSenderGameState(getGameState());
-		log("[Broadcast] " + message);
+		log("[Brod] " + message);
 		try {
 			reso.broadcastMessage(localPlayer.getName(), message);
 		} catch (RemoteException e) {
@@ -211,9 +168,9 @@ public abstract class GameState implements MessageVisitor {
 		}
 	}
 
-//	public void setReso(Reso reso) {
-//		this.reso = reso;
-//	}
+	// public void setReso(Reso reso) {
+	// this.reso = reso;
+	// }
 
 	public void declarePlayer(Client client) {
 		try {
@@ -234,14 +191,6 @@ public abstract class GameState implements MessageVisitor {
 	// /////////////////
 	// Players
 	// /////////////////
-	
-//	public void setLeader(Player leader) {
-//		this.leader = leader;
-//	}
-	
-	public boolean isLeader() {
-		return leader.equals(localPlayer);
-	}
 
 	public void setOtherPlayer(Collection<RemotePlayer> otherPlayers) {
 		this.otherPlayers.addAll(otherPlayers);
@@ -284,13 +233,13 @@ public abstract class GameState implements MessageVisitor {
 	// // Tools
 	// /////////////////
 
-	protected void ignoreMessage(Message message) {
-		log(">>[Ignored] from [" + message.getFrom() + "]" + message);
-	}
-	
 	public String toString() {
 		String name = getClass().getSimpleName().replace("GameState", "");
 		return name.substring(2);
+	}
+
+	public void log(String logMessage) {
+		System.out.println("[" + localPlayer.getName() + "][" + getGameState() + "]" + logMessage);
 	}
 
 }

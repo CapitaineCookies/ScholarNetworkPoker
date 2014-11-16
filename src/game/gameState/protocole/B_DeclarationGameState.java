@@ -1,11 +1,11 @@
 package game.gameState.protocole;
 
 import game.LocalPlayer;
-import game.gameState.GameStateStandard;
+import game.gameState.GameStateDecentralized;
 import reso.Client;
 import reso.Reso;
 
-public class B_DeclarationGameState extends GameStateStandard {
+public class B_DeclarationGameState extends GameStateDecentralized {
 
 	Client client;
 

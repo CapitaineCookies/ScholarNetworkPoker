@@ -18,12 +18,12 @@ import reso.Reso;
 import JeuCartes.Carte;
 import JeuCartes.JeuCartes;
 
-public class GL_TradeCardsGameState extends G_TradeCardsGameState {
+public class GL_CardsTradeGameState extends G_CardsTradeGameState {
 
 	private JeuCartes deck;
 	CriticalSectionThread criticalSectionSender = null;
 
-	public GL_TradeCardsGameState(Reso reso, LocalPlayer localPlayer, OtherPlayers otherPlayers, Player leader, JeuCartes deck) {
+	public GL_CardsTradeGameState(Reso reso, LocalPlayer localPlayer, OtherPlayers otherPlayers, Player leader, JeuCartes deck) {
 		super(reso, localPlayer, otherPlayers, leader);
 		this.deck = deck;
 		this.criticalSectionSender = new CriticalSectionThread();

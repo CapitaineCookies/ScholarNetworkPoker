@@ -3,7 +3,7 @@ package game.gameState.protocole;
 import game.LocalPlayer;
 import game.OtherPlayers;
 import game.Player;
-import game.gameState.GameStateStandard;
+import game.gameState.GameStateDecentralized;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -23,7 +23,7 @@ import message.MsgSyncConflict;
 import reso.Reso;
 import sun.misc.Lock;
 
-public class D_DistribNumberGameState extends GameStateStandard {
+public class D_NumberDistribGameState extends GameStateDecentralized {
 
 	private int myID;
 	private Map<Player, Integer> othersID;
@@ -38,7 +38,7 @@ public class D_DistribNumberGameState extends GameStateStandard {
 	private Semaphore syncConflict;
 	private Semaphore waitAllConflictResolve;
 
-	public D_DistribNumberGameState(Reso reso, LocalPlayer localPlayer, OtherPlayers otherPlayers) {
+	public D_NumberDistribGameState(Reso reso, LocalPlayer localPlayer, OtherPlayers otherPlayers) {
 		super(reso, localPlayer, otherPlayers);
 	}
 

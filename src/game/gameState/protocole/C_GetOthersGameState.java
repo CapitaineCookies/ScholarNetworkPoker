@@ -2,7 +2,7 @@ package game.gameState.protocole;
 
 import game.LocalPlayer;
 import game.OtherPlayers;
-import game.gameState.GameStateStandard;
+import game.gameState.GameStateDecentralized;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -17,7 +17,7 @@ import message.MsgPlaying;
 import message.MsgPlayingToo;
 import reso.Reso;
 
-public class C_GetOthersGameState extends GameStateStandard {
+public class C_GetOthersGameState extends GameStateDecentralized {
 
 	private Set<String> playersWantToPlay;
 	private ScheduledThreadPoolExecutor scheduler;
@@ -35,7 +35,7 @@ public class C_GetOthersGameState extends GameStateStandard {
 	protected void execute() {
 		startChrono();
 		sendPlayingMessage();
-		// TODO If use post synch, must put removePlayer HERE !
+		// If used post sync, must put removePlayer HERE !
 	}
 
 	// Lock for recieveplayers boolean

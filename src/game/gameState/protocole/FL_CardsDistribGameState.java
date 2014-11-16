@@ -8,11 +8,11 @@ import message.MsgCard;
 import JeuCartes.Hand;
 import JeuCartes.JeuCartes;
 
-public class FL_CardsDistributionGameState extends F_CardsDistributionGameState {
+public class FL_CardsDistribGameState extends F_CardsDistribGameState {
 
 	private JeuCartes deck;
 
-	public FL_CardsDistributionGameState(Reso reso, LocalPlayer localPlayer, OtherPlayers otherPlayers, Player leader) {
+	public FL_CardsDistribGameState(Reso reso, LocalPlayer localPlayer, OtherPlayers otherPlayers, Player leader) {
 		super(reso, localPlayer, otherPlayers, leader);
 	}
 

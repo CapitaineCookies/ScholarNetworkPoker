@@ -1,20 +1,19 @@
 package game.gameState.protocole;
 
 import game.LocalPlayer;
-import game.gameState.GameStateStandard;
+import game.gameState.GameStateRing;
 import reso.Reso;
 
-public class Z_ExitGameState extends GameStateStandard {
+public class Z_ExitGameState extends GameStateRing {
 
-	
 	public Z_ExitGameState(Reso reso, LocalPlayer localPlayer) {
-		super(reso, localPlayer, null);
+		super(reso, localPlayer, null, null);
 	}
 
 	@Override
 	protected void execute() {
 		disconnectPlayer();
-                notifyStepDone();
+		notifyStepDone();
 	}
 
 	@Override
@@ -24,7 +23,8 @@ public class Z_ExitGameState extends GameStateStandard {
 
 	@Override
 	public EGameState getNextState() {
-		throw new RuntimeException("Unexist other nextState ! Probably need to check current state");
+		log("Unexist other nextState ! Probably need to check current state");
+		return null;
 	}
 
 }

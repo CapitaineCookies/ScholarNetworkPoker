@@ -2,7 +2,7 @@ package game.gameState.protocole;
 
 import game.Game;
 import game.LocalPlayer;
-import game.gameState.GameStateStandard;
+import game.gameState.GameStateDecentralized;
 
 import java.net.MalformedURLException;
 import java.rmi.Naming;
@@ -11,11 +11,12 @@ import java.rmi.RemoteException;
 
 import reso.Reso;
 
-public class A_GetResoGameState extends GameStateStandard {
+public class A_GetResoGameState extends GameStateDecentralized {
 
 	Game game;
+
 	public A_GetResoGameState(LocalPlayer localPlayer, Game game) {
-		super(null,localPlayer,null);
+		super(null, localPlayer, null);
 		this.game = game;
 	}
 
@@ -32,7 +33,7 @@ public class A_GetResoGameState extends GameStateStandard {
 			e.printStackTrace();
 		}
 	}
-	
+
 	@Override
 	public EGameState getGameState() {
 		return EGameState.A_getReso;

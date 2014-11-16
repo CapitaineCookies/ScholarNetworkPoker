@@ -3,14 +3,14 @@ package game.gameState.protocole;
 import game.LocalPlayer;
 import game.OtherPlayers;
 import game.Player;
-import game.gameState.GameStateStandard;
+import game.gameState.GameStateRing;
 import message.MsgCard;
 import reso.Reso;
 import JeuCartes.Hand;
 
-public class F_CardsDistributionGameState extends GameStateStandard {
+public class F_CardsDistribGameState extends GameStateRing {
 
-	public F_CardsDistributionGameState(Reso reso, LocalPlayer localPlayer, OtherPlayers otherPlayers, Player leader) {
+	public F_CardsDistribGameState(Reso reso, LocalPlayer localPlayer, OtherPlayers otherPlayers, Player leader) {
 		super(reso, localPlayer, otherPlayers, leader);
 	}
 

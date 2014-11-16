@@ -3,7 +3,7 @@ package game.gameState.protocole;
 import game.LocalPlayer;
 import game.OtherPlayers;
 import game.Player;
-import game.gameState.GameStateStandard;
+import game.gameState.GameStateRing;
 
 import java.util.List;
 import java.util.concurrent.Semaphore;
@@ -18,7 +18,7 @@ import message.MsgTradeEnd;
 import reso.Reso;
 import JeuCartes.Carte;
 
-public class G_TradeCardsGameState extends GameStateStandard {
+public class G_CardsTradeGameState extends GameStateRing {
 
 	public static final int NB_MAX_TRADE = 2;
 
@@ -28,7 +28,7 @@ public class G_TradeCardsGameState extends GameStateStandard {
 	private int nbTradeMade;
 	private int nbTradeMadefromlastReceiveToken;
 
-	public G_TradeCardsGameState(Reso reso, LocalPlayer localPlayer, OtherPlayers otherPlayers, Player leader) {
+	public G_CardsTradeGameState(Reso reso, LocalPlayer localPlayer, OtherPlayers otherPlayers, Player leader) {
 		super(reso, localPlayer, otherPlayers, leader);
 
 		this.waitCardsReception = new Semaphore(0);
@@ -53,18 +53,13 @@ public class G_TradeCardsGameState extends GameStateStandard {
 	}
 
 	@Override
-	protected boolean makePrePostExecuteSynchro() {
-		return true;
-	}
-
-	@Override
 	public void receive(MsgEndingToken message) {
 		computeMessage(message);
 		sendToNextPlayer(message);
 	}
 
 	protected void sendToNextPlayer(MsgEndingToken message) {
-		send(localPlayer.getNextPlayer(), message);
+		sendToNext(message);
 	}
 
 	protected void computeMessage(MsgEndingToken message) {
@@ -74,10 +69,10 @@ public class G_TradeCardsGameState extends GameStateStandard {
 		if (nbTradeMade < NB_MAX_TRADE) {
 
 			int nbOthersTrade = message.takeNbTradeMade(localPlayer.getName());
-			log("[NbTradeMade : " + nbOthersTrade + "]");
-			if (nbOthersTrade < (Math.random() * 10)) {
+			log("[NbTradeMadeAfterMe : " + nbOthersTrade + "]");
+			if (nbOthersTrade > (Math.random() * 8)) {
 				makeATrade();
-				nbTradeMadefromlastReceiveToken++;
+				++nbTradeMadefromlastReceiveToken;
 				++nbTradeMade;
 				message.invalidToken(localPlayer.getName(), nbTradeMadefromlastReceiveToken);
 				nbTradeMadefromlastReceiveToken = 0;
@@ -98,6 +93,7 @@ public class G_TradeCardsGameState extends GameStateStandard {
 
 	@Override
 	public void receive(MsgTradeEnd message) {
+		log.entering("receive", message.toString());
 		notifyStepDone();
 	}
 
@@ -115,7 +111,7 @@ public class G_TradeCardsGameState extends GameStateStandard {
 	}
 
 	private void getCriticalSection() {
-		send(leader, new MsgGetCriticalSection());
+		sendToLeader(new MsgGetCriticalSection());
 	}
 
 	private void waitCriticalSection() {
@@ -128,7 +124,7 @@ public class G_TradeCardsGameState extends GameStateStandard {
 	}
 
 	private void releaseCriticalSection() {
-		send(leader, new MsgReleaseCriticalSection());
+		sendToLeader(new MsgReleaseCriticalSection());
 	}
 
 	private void waitCardsReception(int nbCardsTrade) {
@@ -140,7 +136,7 @@ public class G_TradeCardsGameState extends GameStateStandard {
 	}
 
 	private void sendTardeCards(List<Carte> cards) {
-		send(leader, new MsgTradeCards(cards));
+		sendToLeader(new MsgTradeCards(cards));
 	}
 
 	@Override

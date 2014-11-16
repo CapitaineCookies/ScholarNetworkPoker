@@ -5,12 +5,12 @@ import game.gameState.GameState.EGameState;
 import game.gameState.protocole.A_GetResoGameState;
 import game.gameState.protocole.B_DeclarationGameState;
 import game.gameState.protocole.C_GetOthersGameState;
-import game.gameState.protocole.D_DistribNumberGameState;
+import game.gameState.protocole.D_NumberDistribGameState;
 import game.gameState.protocole.E_ElectionGameState;
-import game.gameState.protocole.FL_CardsDistributionGameState;
-import game.gameState.protocole.F_CardsDistributionGameState;
-import game.gameState.protocole.GL_TradeCardsGameState;
-import game.gameState.protocole.G_TradeCardsGameState;
+import game.gameState.protocole.FL_CardsDistribGameState;
+import game.gameState.protocole.F_CardsDistribGameState;
+import game.gameState.protocole.GL_CardsTradeGameState;
+import game.gameState.protocole.G_CardsTradeGameState;
 import game.gameState.protocole.H_CardsShowGameState;
 import game.gameState.protocole.Z_ExitGameState;
 
@@ -43,10 +43,6 @@ public class Game extends UnicastRemoteObject implements Client {
 		this.localPlayer = localPlayer;
 		this.leader = localPlayer;
 		this.gameStates = new HashMap<>();
-	}
-
-	public Player getNextPlayer() {
-		return localPlayer.getNextPlayer();
 	}
 
 	public void setReso(Reso reso) {
@@ -90,11 +86,9 @@ public class Game extends UnicastRemoteObject implements Client {
 	public void startGame() {
 		currentGameState = getGameState(EGameState.A_getReso);
 		do {
-			System.out.println("[" + localPlayer.getName() + "][" + currentGameState + "][start]");
 			currentGameState.start();
 			setNextGameState();
 		} while (!(currentGameState.getGameState() == EGameState.Z_exit));
-		System.out.println("[" + localPlayer.getName() + "][!" + currentGameState + "!]");
 		currentGameState.start();
 	}
 
@@ -117,24 +111,24 @@ public class Game extends UnicastRemoteObject implements Client {
 			gameState = new C_GetOthersGameState(reso, localPlayer, otherPlayers);
 			break;
 		case D_distribNumber:
-			gameState = new D_DistribNumberGameState(reso, localPlayer, otherPlayers);
+			gameState = new D_NumberDistribGameState(reso, localPlayer, otherPlayers);
 			break;
 		case E_election:
 			gameState = new E_ElectionGameState(reso, localPlayer, otherPlayers, this);
 			break;
 		case F_cardsDistribution:
 			if (!isLeader()) {
-				gameState = new F_CardsDistributionGameState(reso, localPlayer, otherPlayers, leader);
+				gameState = new F_CardsDistribGameState(reso, localPlayer, otherPlayers, leader);
 			} else {
-				gameState = new FL_CardsDistributionGameState(reso, localPlayer, otherPlayers, leader);
+				gameState = new FL_CardsDistribGameState(reso, localPlayer, otherPlayers, leader);
 			}
 			break;
 		case G_cardsTrade:
 			if (!isLeader()) {
-				gameState = new G_TradeCardsGameState(reso, localPlayer, otherPlayers, leader);
+				gameState = new G_CardsTradeGameState(reso, localPlayer, otherPlayers, leader);
 			} else {
-				FL_CardsDistributionGameState cardsDistrib = (FL_CardsDistributionGameState) getGameState(EGameState.F_cardsDistribution);
-				gameState = new GL_TradeCardsGameState(reso, localPlayer, otherPlayers, leader, cardsDistrib.getDeck());
+				FL_CardsDistribGameState cardsDistrib = (FL_CardsDistribGameState) getGameState(EGameState.F_cardsDistribution);
+				gameState = new GL_CardsTradeGameState(reso, localPlayer, otherPlayers, leader, cardsDistrib.getDeck());
 			}
 			break;
 		case H_cardsShow:
