@@ -125,5 +125,31 @@ Reception de message :
 		- ajoute le joueur a la liste d'attente pour la SC
 	- la réception de "MsgTradeCards" :
 		- provoque l'échange de cartes : Ajout des carte reçu au deck et envoi de nouvelles cartes.
-	 a
+	 
+	
+Architecture
+Pour avoir une meilleur découpe et lisibilité du code, nous avons mis en place une architeture adapté au projet.
+Deux disgnes patern on été combiné afin d'obtenir le meilleur résultat possible. 
+	Le premier ce base sur un patern a état.
+	- L'avantage de ce disgne paterne est que chaque protocole étant répartit dans un état, ainsi le code pour la distribution de nombre ne se mélange pas au code de l'échange de carte.
+	La répartition est mieux faite et il est bien plus simple de retrouver le code pour un protocole donné.
+	De plus les protocoles demande généralement d'utiliser des variables qui leur son propre : méorisation des id reçu, mémortisation du nombre d'échange ... Chaque classe contient ces propres variables en plus de celle commune à toutes
+	
+	En parallele, nous avons profité de cette structure de donnée pour implémenter une base pour tous nos digne patern. C'est le role de la classe GameState.
+	En effet, Certaines oprations sont redondante entre chaqu'un des GameStates.
+	On execute un gameState via la fonction start(). En interne, cette fonction déroulé le protocole suivant :
+		- preExecute(), execute(), posteExecute() : Qui ont respectivement comme objectif : initialiser certaine variable, faire le protocole specifique à l'état, affecter les résultat obtenu aux variables globales.
+		- Entre chaque execution, la possiblilité de synchroniser tous les participant est offerte. Pour cela, il faut surcharger les méthodes makePreSyncExecute() et makePostSyncExecute() en retournant vrais.
+			La synchronisation se fait différement si on hérite de GameStateDecentralized ou GameStateRing. La première inonde les participant de message O(n²) et la seconde utilise un algo de terminaison en anneau O(n log(n)) mais nécessite que les joueurs soient répartis en anneau.
+	
+	- L'inconvéniant, dû au faite que le programme est asynchrone et non fifo, est que l'on peut recevoir des messages d'un état avant le notre ou après le notre.
+	Pour palié ce probleme, nous n'avons pas utiliser une pile comme dans le disgn patern mais une Map. De plus, chaque message contient un Enum désignant quel est l'état qui doit recevoir le message. De cette façon, à la réception, les messages son redirigé vers l'état correspondant.
+	Comme çela, meme si l'état courant est la distribution de nombre, il est possible de recevoir des message pour l'élection sans qu'il n'y ai d'interferance.
+	
+	Le second digne patern est un patern visiteur.
+	Celui-ci est utilisé pour la réception de message. Etant donnée qu'il existe un grand nombre de messages échangés dans le programme, nous avons pensé qu'il était judicieux d'utilisé ce patern afin de ne plus recevoir tous les message via la seul méthode receive.
+	Avec ce patern, chaque message à sa propre fonction receive. Il nous n'avons plsu qu'à implémenter les méthodes qui nous intéresse. Si d'autre message son reçu mais non traité, il son simplement ignoré et un message de log nous le signal.
+	
+	
+
 
