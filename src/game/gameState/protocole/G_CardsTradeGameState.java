@@ -93,7 +93,7 @@ public class G_CardsTradeGameState extends GameStateRing {
 
 	@Override
 	public void receive(MsgTradeEnd message) {
-		log.entering("receive", message.toString());
+//		log.entering("receive", message.toString());
 		notifyStepDone();
 	}
 

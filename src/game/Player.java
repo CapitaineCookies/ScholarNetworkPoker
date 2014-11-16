@@ -32,6 +32,10 @@ public abstract class Player {
 		return name;
 	}
 
+	public String toStringHand() {
+		return name + " : " + hand;
+	}
+
 	public Hand getHand() {
 		return hand;
 	}

@@ -26,10 +26,13 @@ public class F_CardsDistribGameState extends GameStateRing {
 
 	@Override
 	public void receive(MsgCard message) {
-		localPlayer.getHand().add(message.getCard());
+		synchronized (localPlayer) {
 
-		if (localPlayer.getHand().getSize() == Hand.nbCardPerPlayer) {
-			notifyStepDone();
+			localPlayer.getHand().add(message.getCard());
+
+			if (localPlayer.getHand().getSize() == Hand.nbCardPerPlayer) {
+				notifyStepDone();
+			}
 		}
 	}
 

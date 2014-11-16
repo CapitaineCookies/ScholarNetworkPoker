@@ -218,6 +218,7 @@ public abstract class GameState extends GameStateVisitorImpl {
 	// /////////////////
 
 	protected void notifyStepDone() {
+		log("[NotifyStepDone]");
 		stepDone.release();
 	}
 

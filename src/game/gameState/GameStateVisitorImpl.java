@@ -21,6 +21,7 @@ import message.MsgPostSynch;
 import message.MsgPreExeSyncEnd;
 import message.MsgPreExecutSyncRing;
 import message.MsgPreSynch;
+import message.MsgReceiveToken;
 import message.MsgReleaseCriticalSection;
 import message.MsgResolveConflict;
 import message.MsgSync;
@@ -156,5 +157,10 @@ public abstract class GameStateVisitorImpl implements MessageVisitor {
 	@Override
 	public void receive(MsgPostExecutSyncRing message) {
 		ignoreMessage(message);
+	}
+
+	@Override
+	public void receive(MsgReceiveToken message) {
+		ignoreMessage(message);		
 	}
 }

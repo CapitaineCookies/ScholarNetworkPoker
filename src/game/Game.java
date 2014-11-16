@@ -11,6 +11,7 @@ import game.gameState.protocole.FL_CardsDistribGameState;
 import game.gameState.protocole.F_CardsDistribGameState;
 import game.gameState.protocole.GL_CardsTradeGameState;
 import game.gameState.protocole.G_CardsTradeGameState;
+import game.gameState.protocole.HL_CardsShowGameState;
 import game.gameState.protocole.H_CardsShowGameState;
 import game.gameState.protocole.Z_ExitGameState;
 
@@ -75,7 +76,7 @@ public class Game extends UnicastRemoteObject implements Client {
 		if (msg instanceof Message) {
 			Message message = (Message) msg;
 			GameState gameState = getGameState(((Message) msg).getSenderGameState());
-			gameState.log("[Recv] from [" + from + "] " + msg);
+			gameState.log("[Recv] from [" + from + "]" + msg);
 			message.setFrom(from);
 			message.accept(gameState);
 		} else {
@@ -132,7 +133,11 @@ public class Game extends UnicastRemoteObject implements Client {
 			}
 			break;
 		case H_cardsShow:
-			gameState = new H_CardsShowGameState(reso, localPlayer, otherPlayers, leader);
+			if (!isLeader()) {
+				gameState = new H_CardsShowGameState(reso, localPlayer, otherPlayers, leader);
+			} else {
+				gameState = new HL_CardsShowGameState(reso, localPlayer, otherPlayers, leader);
+			}
 			break;
 		case Z_exit:
 			gameState = new Z_ExitGameState(reso, localPlayer);

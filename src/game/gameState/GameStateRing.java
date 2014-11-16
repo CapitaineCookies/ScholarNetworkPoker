@@ -53,7 +53,7 @@ public abstract class GameStateRing extends GameState {
 	@Override
 	protected void waitPostPreExecuteSynchro() {
 		try {
-			log("[WaitPreSynch] expected " + otherPlayers.size() + 1 + " ID in message");
+			log("[WaitPreSynch] expected " + (otherPlayers.size() + 1) + " ID in message");
 			preLock.acquire();
 		} catch (InterruptedException e) {
 			e.printStackTrace();

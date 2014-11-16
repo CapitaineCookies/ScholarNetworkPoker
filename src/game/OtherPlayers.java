@@ -49,4 +49,12 @@ public class OtherPlayers {
 		return players.remove(player) != null;
 	}
 
+	public String toStringHand() {
+		String s = "";
+		for(RemotePlayer player : players.values()) {
+			s += player.toStringHand();
+		}
+		return s;
+	}
+
 }

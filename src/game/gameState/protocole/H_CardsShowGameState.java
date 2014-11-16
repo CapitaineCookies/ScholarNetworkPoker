@@ -5,45 +5,51 @@ import game.OtherPlayers;
 import game.Player;
 import game.gameState.GameStateRing;
 import message.MsgCardWithNextPlayer;
+import message.MsgReceiveToken;
 import reso.Reso;
 import JeuCartes.Hand;
 
 public class H_CardsShowGameState extends GameStateRing {
 
-	private int countCard;
+	private int countCards;
 
 	public H_CardsShowGameState(Reso reso, LocalPlayer localPlayer, OtherPlayers otherPlayers, Player leader) {
 		super(reso, localPlayer, otherPlayers, leader);
-	}
-
-	@Override
-	protected void preExecute() {
-		countCard = 0;
-	}
-
-	@Override
-	protected boolean makePostPreExecuteSynchro() {
-		return true;
+		countCards = 0;
 	}
 
 	@Override
 	protected void execute() {
-		if (isLeader())
-			sendNextShowCard();
-
+		// Nothing to do, wait start from leader
 	}
 
 	@Override
-	public synchronized void receive(MsgCardWithNextPlayer message) {
-		if (localPlayer.equals(message.getNextPlayer()))
-			sendNextShowCard();
+	protected void postExecute() {
+		log("My cards : " + localPlayer.getHand());
+		log("Their cards : " + otherPlayers.toStringHand());
 	}
 
-	private void sendNextShowCard() {
-		countCard++;
-		broadcast(new MsgCardWithNextPlayer(localPlayer.getHand().pollRandomCard(), localPlayer.getNextPlayer().getName()));
-		if (countCard == Hand.nbCardPerPlayer)
+	@Override
+	public void receive(MsgCardWithNextPlayer message) {
+		getFrom(message).getHand().add(message.getCard());
+		++countCards;
+		if (countCards == Hand.nbCardPerPlayer * otherPlayers.size())
 			notifyStepDone();
+		else if (localPlayer.equals(message.getNextPlayer())) {
+			sendToNext(new MsgReceiveToken(localPlayer.getID()));
+		}
+	}
+
+	@Override
+	public void receive(MsgReceiveToken message) {
+		if (message.getSenderID() == localPlayer.getID())
+			sendNextShowCard();
+		else
+			sendToNext(message);
+	}
+
+	protected void sendNextShowCard() {
+		sendToOthers(new MsgCardWithNextPlayer(localPlayer.getHand().pollRandomCard(), localPlayer.getNextPlayer().getName()));
 	}
 
 	@Override

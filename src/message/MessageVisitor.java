@@ -27,4 +27,5 @@ public interface MessageVisitor {
 	void receive(MsgSyncConflict message);
 	void receive(MsgTradeCards message);
 	void receive(MsgTradeEnd message);
+	void receive(MsgReceiveToken message);
 }
