@@ -26,7 +26,7 @@ public class G_CardsTradeGameState extends GameStateRing {
 	private Semaphore waitCardsReception;
 
 	private int nbTradeMade;
-	private int nbTradeMadefromlastReceiveToken;
+	private int nbTradeMadeFromLastReceiveToken;
 
 	public G_CardsTradeGameState(Reso reso, LocalPlayer localPlayer, OtherPlayers otherPlayers, Player leader) {
 		super(reso, localPlayer, otherPlayers, leader);
@@ -38,7 +38,8 @@ public class G_CardsTradeGameState extends GameStateRing {
 
 	@Override
 	protected void preExecute() {
-		this.nbTradeMadefromlastReceiveToken = 1;
+		nbTradeMadeFromLastReceiveToken = 1;
+		nbTradeMade = 1;
 	}
 
 	@Override
@@ -48,7 +49,6 @@ public class G_CardsTradeGameState extends GameStateRing {
 
 	@Override
 	protected void execute() {
-		nbTradeMade = 1;
 		makeATrade();
 	}
 
@@ -64,18 +64,18 @@ public class G_CardsTradeGameState extends GameStateRing {
 
 	protected void computeMessage(MsgEndingToken message) {
 
-		message.invalidToken(localPlayer.getName(), nbTradeMadefromlastReceiveToken);
-		nbTradeMadefromlastReceiveToken = 0;
+		message.invalidToken(localPlayer.getName(), nbTradeMadeFromLastReceiveToken);
+		nbTradeMadeFromLastReceiveToken = 0;
 		if (nbTradeMade < NB_MAX_TRADE) {
 
 			int nbOthersTrade = message.takeNbTradeMade(localPlayer.getName());
 			log("[NbTradeMadeAfterMe : " + nbOthersTrade + "]");
 			if (nbOthersTrade > (Math.random() * 8)) {
 				makeATrade();
-				++nbTradeMadefromlastReceiveToken;
+				++nbTradeMadeFromLastReceiveToken;
 				++nbTradeMade;
-				message.invalidToken(localPlayer.getName(), nbTradeMadefromlastReceiveToken);
-				nbTradeMadefromlastReceiveToken = 0;
+				message.invalidToken(localPlayer.getName(), nbTradeMadeFromLastReceiveToken);
+				nbTradeMadeFromLastReceiveToken = 0;
 			}
 		}
 	}

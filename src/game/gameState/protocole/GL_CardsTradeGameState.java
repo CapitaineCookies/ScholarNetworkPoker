@@ -1,12 +1,13 @@
 package game.gameState.protocole;
 
+import game.LocalPlayer;
+import game.OtherPlayers;
+import game.Player;
+
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.Semaphore;
 
-import game.LocalPlayer;
-import game.OtherPlayers;
-import game.Player;
 import message.MsgCard;
 import message.MsgEndingToken;
 import message.MsgGetCriticalSection;
@@ -33,12 +34,17 @@ public class GL_CardsTradeGameState extends G_CardsTradeGameState {
 	protected void preExecute() {
 		super.preExecute();
 		this.criticalSectionSender.start();
+	}
+
+	@Override
+	protected void execute() {
+		super.execute();
 		send(localPlayer.getName(), new MsgEndingToken());
 	}
-	
+
 	@Override
 	public void receive(MsgEndingToken message) {
-		if(message.isValid())
+		if (message.isValid())
 			broadcast(new MsgTradeEnd());
 		else {
 			message.initialiseValid();
@@ -67,7 +73,7 @@ public class GL_CardsTradeGameState extends G_CardsTradeGameState {
 		int nbCardsTarde = msg.getCards().size();
 
 		// synchronized not used : we are in critical section
-		
+
 		// Add cards trade to deck
 		for (Carte carte : msg.getCards()) {
 			deck.ajoutCarte(carte);
@@ -120,7 +126,7 @@ public class GL_CardsTradeGameState extends G_CardsTradeGameState {
 			criticalSectionLocker.release();
 		}
 
-		public void add(String playerName) {
+		public synchronized void add(String playerName) {
 			blockingQueue.add(playerName);
 		}
 	}
