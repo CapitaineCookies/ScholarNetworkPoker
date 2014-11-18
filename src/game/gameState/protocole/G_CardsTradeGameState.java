@@ -42,7 +42,7 @@ public class G_CardsTradeGameState extends GameStateRing {
 	}
 
 	@Override
-	protected boolean makePostPreExecuteSynchro() {
+	protected boolean makePreExecuteSync() {
 		return true;
 	}
 

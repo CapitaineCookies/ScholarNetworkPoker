@@ -2,6 +2,7 @@ package JeuCartes;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -50,5 +51,9 @@ public class Hand implements Serializable {
 	@Override
 	public String toString() {
 		return handCards.toString();
+	}
+
+	public void addAll(Collection<Carte> cardsSend) {
+		handCards.addAll(cardsSend);
 	}
 }

@@ -49,9 +49,7 @@ public class GL_CardsTradeGameState extends G_CardsTradeGameState {
 
 	@Override
 	protected void postExecute() {
-		if (isLeader()) {
-			criticalSectionSender.interrupt();
-		}
+		criticalSectionSender.interrupt();
 	}
 
 	@Override

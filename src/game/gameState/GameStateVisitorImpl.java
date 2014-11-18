@@ -17,10 +17,10 @@ import message.MsgPlaying;
 import message.MsgPlayingToo;
 import message.MsgPostExeSyncEnd;
 import message.MsgPostExecutSyncRing;
-import message.MsgPostSynch;
+import message.MsgPostSync;
 import message.MsgPreExeSyncEnd;
 import message.MsgPreExecutSyncRing;
-import message.MsgPreSynch;
+import message.MsgPreSync;
 import message.MsgReceiveToken;
 import message.MsgReleaseCriticalSection;
 import message.MsgResolveConflict;
@@ -125,7 +125,7 @@ public abstract class GameStateVisitorImpl implements MessageVisitor {
 	}
 
 	@Override
-	public void receive(MsgPreSynch message) {
+	public void receive(MsgPreSync message) {
 		ignoreMessage(message);
 	}
 
@@ -140,7 +140,7 @@ public abstract class GameStateVisitorImpl implements MessageVisitor {
 	}
 
 	@Override
-	public void receive(MsgPostSynch message) {
+	public void receive(MsgPostSync message) {
 		ignoreMessage(message);
 	}
 

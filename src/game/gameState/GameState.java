@@ -48,18 +48,18 @@ public abstract class GameState extends GameStateVisitorImpl {
 		log("[StartPreExecute]");
 		preExecute();
 
-		if (makePostPreExecuteSynchro()) {
-			sendPostPreExecuteSynchro();
-			waitPostPreExecuteSynchro();
+		if (makePreExecuteSync()) {
+			sendPreExecuteSync();
+			waitPreExecuteSync();
 		}
 
 		log("[StartExecute]");
 		execute();
 		waitStepDone();
 
-		if (makePrePostExecuteSynchro()) {
-			sendPrePostExecuteSynchro();
-			waitPrePostExecuteSynchro();
+		if (makePostExecuteSync()) {
+			sendPostExecuteSync();
+			waitPostExecuteSync();
 		}
 		log("[StartPostExecute]");
 		postExecute();
@@ -82,13 +82,13 @@ public abstract class GameState extends GameStateVisitorImpl {
 	 * 
 	 * @return true for synchronization
 	 */
-	protected boolean makePostPreExecuteSynchro() {
+	protected boolean makePreExecuteSync() {
 		return false;
 	}
 
-	protected abstract void sendPostPreExecuteSynchro();
+	protected abstract void sendPreExecuteSync();
 
-	protected abstract void waitPostPreExecuteSynchro();
+	protected abstract void waitPreExecuteSync();
 
 	/**
 	 * Put here the Main execution of the gameState
@@ -100,13 +100,13 @@ public abstract class GameState extends GameStateVisitorImpl {
 	 * 
 	 * @return true for synchronization
 	 */
-	protected boolean makePrePostExecuteSynchro() {
+	protected boolean makePostExecuteSync() {
 		return false;
 	}
 
-	protected abstract void sendPrePostExecuteSynchro();
+	protected abstract void sendPostExecuteSync();
 
-	protected abstract void waitPrePostExecuteSynchro();
+	protected abstract void waitPostExecuteSync();
 
 	/**
 	 * Call after calls execute() AND notifyDone() Use of initializations. Use with postExecuteSynchro for more secure
@@ -220,13 +220,17 @@ public abstract class GameState extends GameStateVisitorImpl {
 	protected void notifyStepDone() {
 		log("[NotifyStepDone]");
 		stepDone.release();
+		log("[IsNotifyStepDone]");
 	}
 
 	private void waitStepDone() {
 		try {
+			log("[WaitNotifyStepDone]");
 			stepDone.acquire();
+			log("[isReleaseNotifyStepDone]");
 		} catch (InterruptedException e) {
 			e.printStackTrace();
+			log("!!!!!!!!!!!!!!!!!!!!!!!!!");
 		}
 	}
 

@@ -52,7 +52,7 @@ public class OtherPlayers {
 	public String toStringHand() {
 		String s = "";
 		for(RemotePlayer player : players.values()) {
-			s += player.toStringHand();
+			s += player.toStringHand() + '\n';
 		}
 		return s;
 	}

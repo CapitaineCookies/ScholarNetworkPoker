@@ -37,49 +37,49 @@ public abstract class GameStateRing extends GameState {
 	}
 
 	@Override
-	protected void sendPostPreExecuteSynchro() {
+	protected void sendPreExecuteSync() {
 		synchronized (bufferPreSync) {
 			bufferPreSync.add(localPlayer.getID());
-			if (bufferPreSync.size() < otherPlayers.size() + 1) {
+			if (bufferPreSync.size() == otherPlayers.size() + 1) {
+				endPreExeSync();
+			} else {
 				sendToNext(new MsgPreExecutSyncRing(bufferPreSync));
 				preSyncState = SyncState.wait;
-			} else {
-				sendToNext(new MsgPreExeSyncEnd());
-				preSyncState = SyncState.end;
 			}
 		}
 	}
 
 	@Override
-	protected void waitPostPreExecuteSynchro() {
+	protected void waitPreExecuteSync() {
 		try {
-			log("[WaitPreSynch] expected " + (otherPlayers.size() + 1) + " ID in message");
+			log("[WaitPreSync] expected " + (otherPlayers.size() + 1) + " ID in message");
 			preLock.acquire();
 		} catch (InterruptedException e) {
+			log("PRE WAIT ERROR !!!!!!!!!!!!!!!!!!!!!!");
 			e.printStackTrace();
 		}
 	}
 
 	@Override
-	protected void sendPrePostExecuteSynchro() {
+	protected void sendPostExecuteSync() {
 		synchronized (bufferPostSync) {
 			bufferPostSync.add(localPlayer.getID());
-			if (bufferPostSync.size() < otherPlayers.size() + 1) {
+			if (bufferPostSync.size() ==  otherPlayers.size() + 1) {
+				endPostExeSync();
+			}else {
 				sendToNext(new MsgPostExecutSyncRing(bufferPostSync));
 				postSyncState = SyncState.wait;
-			} else {
-				sendToNext(new MsgPostExeSyncEnd());
-				postSyncState = SyncState.end;
 			}
 		}
 	}
 
 	@Override
-	protected void waitPrePostExecuteSynchro() {
+	protected void waitPostExecuteSync() {
 		try {
-			log("[WaitPostSynch] expected " + otherPlayers.size() + 1 + " ID in message");
+			log("[WaitPostSync] expected " + (otherPlayers.size() + 1) + " ID in message");
 			postLock.acquire();
 		} catch (InterruptedException e) {
+			log("POST WAIT ERROR !!!!!!!!!!!!!!!!!!!!!!");
 			e.printStackTrace();
 		}
 	}
@@ -88,10 +88,8 @@ public abstract class GameStateRing extends GameState {
 	public void receive(MsgPreExeSyncEnd message) {
 		synchronized (bufferPreSync) {
 			if (preSyncState != SyncState.end) {
-				sendToNext(message);
-				preLock.release();
+				endPreExeSync();
 			}
-			preSyncState = SyncState.end;
 		}
 	}
 
@@ -103,9 +101,7 @@ public abstract class GameStateRing extends GameState {
 
 			bufferPreSync.addAll(message.getIDs());
 			if (bufferPreSync.size() == otherPlayers.size() + 1) {
-				sendToNext(new MsgPreExeSyncEnd());
-				preSyncState = SyncState.end;
-				preLock.release();
+				endPreExeSync();
 			} else if (preSyncState == SyncState.wait)
 				sendToNext(new MsgPreExecutSyncRing(bufferPreSync));
 		}
@@ -115,10 +111,8 @@ public abstract class GameStateRing extends GameState {
 	public void receive(MsgPostExeSyncEnd message) {
 		synchronized (bufferPostSync) {
 			if (postSyncState != SyncState.end) {
-				sendToNext(message);
-				postLock.release();
+				endPostExeSync();
 			}
-			postSyncState = SyncState.end;
 		}
 	}
 
@@ -130,12 +124,27 @@ public abstract class GameStateRing extends GameState {
 
 			bufferPostSync.addAll(message.getIDs());
 			if (bufferPostSync.size() == otherPlayers.size() + 1) {
-				sendToNext(new MsgPostExeSyncEnd());
-				postSyncState = SyncState.end;
-				postLock.release();
-			} else if (postSyncState == SyncState.wait)
+				endPostExeSync();
+			} else if (postSyncState == SyncState.wait) {
 				sendToNext(new MsgPostExecutSyncRing(bufferPostSync));
+			}
 		}
+	}
+
+	private void endPreExeSync() {
+		sendToNext(new MsgPreExeSyncEnd());
+		log("[SetPreSyncStateEnd]");
+		preSyncState = SyncState.end;
+		log("[ReleasePreLock]");
+		preLock.release();
+	}
+
+	private void endPostExeSync() {
+		sendToNext(new MsgPostExeSyncEnd());
+		log("[SetPostSyncStateEnd]");
+		postSyncState = SyncState.end;
+		log("[ReleasePostLock]");
+		postLock.release();
 	}
 
 	public void sendToNext(Message message) {

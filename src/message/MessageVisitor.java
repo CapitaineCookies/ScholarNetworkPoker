@@ -17,10 +17,10 @@ public interface MessageVisitor {
 	void receive(MsgPlayingToo message);
 	void receive(MsgPostExeSyncEnd message);
 	void receive(MsgPostExecutSyncRing message);
-	void receive(MsgPostSynch message);
+	void receive(MsgPostSync message);
 	void receive(MsgPreExeSyncEnd message);
 	void receive(MsgPreExecutSyncRing message);
-	void receive(MsgPreSynch message);
+	void receive(MsgPreSync message);
 	void receive(MsgReleaseCriticalSection message);
 	void receive(MsgResolveConflict message);
 	void receive(MsgSync message);

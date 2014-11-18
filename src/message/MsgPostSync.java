@@ -1,8 +1,8 @@
 package message;
 
-public class MsgPreSynch extends Message {
+public class MsgPostSync extends Message {
 
-	private static final long serialVersionUID = 7445833237636854901L;
+	private static final long serialVersionUID = 58050461625073585L;
 
 	@Override
 	public String msgContains() {

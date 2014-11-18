@@ -20,7 +20,7 @@ public class F_CardsDistribGameState extends GameStateRing {
 	}
 
 	@Override
-	protected boolean makePrePostExecuteSynchro() {
+	protected boolean makePostExecuteSync() {
 		return true;
 	}
 

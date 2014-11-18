@@ -84,7 +84,7 @@ public class C_GetOthersGameState extends GameStateDecentralized {
 			public void run() {
 				broadcast(new MsgPlayers(playersWantToPlay));
 			}
-		}, 18, TimeUnit.SECONDS);
+		}, 13, TimeUnit.SECONDS);
 	}
 
 	private void sendPlayingMessage() {

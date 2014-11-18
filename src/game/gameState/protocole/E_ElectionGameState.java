@@ -25,7 +25,7 @@ public class E_ElectionGameState extends GameStateRing {
 	}
 
 	@Override
-	protected boolean makePostPreExecuteSynchro() {
+	protected boolean makePreExecuteSync() {
 		return true;
 	}
 
@@ -37,7 +37,7 @@ public class E_ElectionGameState extends GameStateRing {
 	}
 
 	@Override
-	protected boolean makePrePostExecuteSynchro() {
+	protected boolean makePostExecuteSync() {
 		return true;
 	}
 

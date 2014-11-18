@@ -60,7 +60,7 @@ public class D_NumberDistribGameState extends GameStateDecentralized {
 	}
 
 	@Override
-	protected boolean makePostPreExecuteSynchro() {
+	protected boolean makePreExecuteSync() {
 		return true;
 	}
 
@@ -71,7 +71,7 @@ public class D_NumberDistribGameState extends GameStateDecentralized {
 	}
 
 	@Override
-	protected boolean makePrePostExecuteSynchro() {
+	protected boolean makePostExecuteSync() {
 		return true;
 	}
 
@@ -204,8 +204,6 @@ public class D_NumberDistribGameState extends GameStateDecentralized {
 		//
 		int numConflict = getNumberOfConflictBefore(othersID, myID);
 
-		log("[Check][StartSetNewID] 2");
-
 		// Add all non selected value + the id in conflict for me
 		for (int i = 0; i < otherPlayers.size() + 1; ++i) {
 			if (i == myID || Collections.frequency(othersID, i) != 1) {
@@ -213,12 +211,6 @@ public class D_NumberDistribGameState extends GameStateDecentralized {
 				System.out.println(i);
 			}
 		}
-
-		log("[Check][StartSetNewID] 3");
-		System.out.println(availableID);
-		System.out.println(othersID);
-		System.out.println(numConflict);
-		System.out.println(getPlaceInConflict());
 
 		myID = availableID.get(numConflict + getPlaceInConflict());
 		log("[Check][Gene New ID] " + myID);

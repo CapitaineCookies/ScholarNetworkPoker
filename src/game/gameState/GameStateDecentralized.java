@@ -2,8 +2,8 @@ package game.gameState;
 
 import game.LocalPlayer;
 import game.OtherPlayers;
-import message.MsgPostSynch;
-import message.MsgPreSynch;
+import message.MsgPostSync;
+import message.MsgPreSync;
 import reso.Reso;
 
 public abstract class GameStateDecentralized extends GameState {
@@ -16,13 +16,13 @@ public abstract class GameStateDecentralized extends GameState {
 	// Protocol
 	// ///////////////////////
 
-	protected void sendPostPreExecuteSynchro() {
-		sendToOthers(new MsgPreSynch());
+	protected void sendPreExecuteSync() {
+		sendToOthers(new MsgPreSync());
 	}
 
-	protected void waitPostPreExecuteSynchro() {
+	protected void waitPreExecuteSync() {
 		try {
-			log("[WaitPreSynch] expected " + otherPlayers.size() + " message");
+			log("[WaitPreSync] expected " + otherPlayers.size() + " message");
 			preLock.acquire(otherPlayers.size());
 		} catch (InterruptedException e) {
 			e.printStackTrace();
@@ -30,13 +30,13 @@ public abstract class GameStateDecentralized extends GameState {
 
 	}
 
-	protected void sendPrePostExecuteSynchro() {
-		sendToOthers(new MsgPostSynch());
+	protected void sendPostExecuteSync() {
+		sendToOthers(new MsgPostSync());
 	}
 
-	protected void waitPrePostExecuteSynchro() {
+	protected void waitPostExecuteSync() {
 		try {
-			log("[WaitPostSynch] expected " + otherPlayers.size() + " message");
+			log("[WaitPostSync] expected " + otherPlayers.size() + " message");
 			postLock.acquire(otherPlayers.size());
 		} catch (InterruptedException e) {
 			e.printStackTrace();
@@ -44,12 +44,12 @@ public abstract class GameStateDecentralized extends GameState {
 	}
 
 	@Override
-	public void receive(MsgPreSynch message) {
+	public void receive(MsgPreSync message) {
 		preLock.release();
 	}
 
 	@Override
-	public void receive(MsgPostSynch message) {
+	public void receive(MsgPostSync message) {
 		postLock.release();
 	}
 
