@@ -128,10 +128,9 @@ public class D_NumberDistribGameState extends GameStateDecentralized {
 
 				} else {
 					waitAllConflictResolve.release();
-					log(waitAllConflictResolve.toString());
 				}
 		} catch (InterruptedException e) {
-			log("[BeInterupted !!!!]");
+			log("[Warning BeInterupted !!!!]");
 			e.printStackTrace();
 		}
 	}
@@ -208,7 +207,6 @@ public class D_NumberDistribGameState extends GameStateDecentralized {
 		for (int i = 0; i < otherPlayers.size() + 1; ++i) {
 			if (i == myID || Collections.frequency(othersID, i) != 1) {
 				availableID.add(i);
-				System.out.println(i);
 			}
 		}
 

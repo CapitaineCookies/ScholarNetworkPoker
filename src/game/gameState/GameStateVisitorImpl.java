@@ -34,7 +34,8 @@ import message.MsgTradeEnd;
  */
 public abstract class GameStateVisitorImpl implements MessageVisitor {
 
-	protected static final Logger log = Logger.getLogger("common");
+	protected static final Logger log = Logger.getLogger("pokerClient");
+	
 	protected void ignoreMessage(Message message) {
 		log.info(">>[Ignored] from [" + message.getFrom() + "]" + message);
 	}

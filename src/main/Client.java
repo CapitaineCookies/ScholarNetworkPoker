@@ -6,14 +6,18 @@
 
 package main;
 
+import game.Game;
+import game.LocalPlayer;
+
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
 import java.util.Enumeration;
 import java.util.List;
-
-import game.Game;
-import game.LocalPlayer;
+import java.util.logging.FileHandler;
+import java.util.logging.Handler;
+import java.util.logging.Logger;
 
 /**
  *
@@ -45,9 +49,11 @@ public class Client {
 		    }		    
 		    System.setProperty("java.rmi.server.hostname", myAdresse);
 		    System.out.println(myAdresse);
-		    
-            Game p = new Game(new LocalPlayer("p" + (int)(Math.random() * 1000)));
-            p.startGame();
+
+	    	Game p = new Game(new LocalPlayer("p" + (int)(Math.random() * 1000)));
+	    	p.startGame();
+    		
+//            p.startGame();
             System.out.println("fin du precessus client !");
 	}
 }

@@ -19,8 +19,8 @@ public class MsgEndingToken extends Message {
 
 	@Override
 	public String msgContains() {
-		String s = (endingToken) ? "valid" : "nonValid";
-		return s + ", counter : " + counter + ", lastCount : " + lastCount;
+		String s = (endingToken) ? "valid" : "notValid";
+		return s + " | counter = " + counter + " | lastCount = " + lastCount;
 	}
 
 	@Override

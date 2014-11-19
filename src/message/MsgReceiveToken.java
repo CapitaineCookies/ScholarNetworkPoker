@@ -20,7 +20,7 @@ public class MsgReceiveToken extends Message {
 
 	@Override
 	public String msgContains() {
-		return "ID : " + senderID;
+		return "ID = " + senderID;
 	}
 
 }

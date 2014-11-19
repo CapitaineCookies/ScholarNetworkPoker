@@ -26,7 +26,7 @@ import message.Message;
 import reso.Client;
 import reso.Reso;
 
-public class Game extends UnicastRemoteObject implements Client {
+public class Game extends UnicastRemoteObject implements Client, Runnable {
 
 	private static final long serialVersionUID = -4064703456148532918L;
 
@@ -155,5 +155,14 @@ public class Game extends UnicastRemoteObject implements Client {
 	@Override
 	public String toString() {
 		return localPlayer.toString();
+	}
+
+	public LocalPlayer getLocalPlayer() {
+		return localPlayer;
+	}
+
+	@Override
+	public void run() {
+		startGame();
 	}
 }

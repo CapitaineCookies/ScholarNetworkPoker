@@ -41,7 +41,7 @@ public abstract class Message implements Serializable {
 		if (msgContains.isEmpty())
 			return "[" + msgName() + "]";
 		else
-			return "[" + msgName() + " : " + msgContains + "]";
+			return "[" + msgName() + " | " + msgContains + "]";
 	}
 
 }
