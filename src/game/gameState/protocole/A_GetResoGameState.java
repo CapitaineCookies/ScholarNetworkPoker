@@ -23,7 +23,7 @@ public class A_GetResoGameState extends GameStateDecentralized {
 	@Override
 	public void execute() {
 		try {
-			game.setReso((Reso) Naming.lookup(Reso.NAME));
+			game.setReso((Reso) Naming.lookup(/*"//lx139/"+ */Reso.NAME));
 			notifyStepDone();
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
